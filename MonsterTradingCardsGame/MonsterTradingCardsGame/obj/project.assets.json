@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\FH\\FH_BIF3\\SWE\\MonsterTradingCardsGame\\MonsterTradingCardsGame\\MonsterTradingCardsGame.csproj",
+      "projectUniqueName": "D:\\FH\\Sem_3\\SWE_MTCG\\MonsterTradingCardsGame\\MonsterTradingCardsGame\\MonsterTradingCardsGame.csproj",
       "projectName": "MonsterTradingCardsGame",
-      "projectPath": "D:\\FH\\FH_BIF3\\SWE\\MonsterTradingCardsGame\\MonsterTradingCardsGame\\MonsterTradingCardsGame.csproj",
+      "projectPath": "D:\\FH\\Sem_3\\SWE_MTCG\\MonsterTradingCardsGame\\MonsterTradingCardsGame\\MonsterTradingCardsGame.csproj",
       "packagesPath": "C:\\Users\\domin\\.nuget\\packages\\",
-      "outputPath": "D:\\FH\\FH_BIF3\\SWE\\MonsterTradingCardsGame\\MonsterTradingCardsGame\\obj\\",
+      "outputPath": "D:\\FH\\Sem_3\\SWE_MTCG\\MonsterTradingCardsGame\\MonsterTradingCardsGame\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\domin\\AppData\\Roaming\\NuGet\\NuGet.Config",

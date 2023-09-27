@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/visualstudio,csharp
-# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudio,csharp
+# Created by https://www.toptal.com/developers/gitignore/api/visualstudio,visualstudiocode,csharp
+# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudio,visualstudiocode,csharp
 
 ### Csharp ###
 ## Ignore Visual Studio temporary files, build results, and
@@ -38,7 +38,6 @@ bld/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
-*/.vs/
 # Uncomment if you have tasks that create the project's static files in wwwroot
 #wwwroot/
 
@@ -400,6 +399,19 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
+### VisualStudioCode ###
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
 ### VisualStudio ###
 
 # User-specific files
@@ -581,9 +593,4 @@ FodyWeavers.xsd
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 
-# End of https://www.toptal.com/developers/gitignore/api/visualstudio,csharp
-MonsterTradingCardsGame/.vs/MonsterTradingCardsGame/DesignTimeBuild/.dtbcache.v2
-MonsterTradingCardsGame/.vs/MonsterTradingCardsGame/v17/.futdcache.v2
-MonsterTradingCardsGame/.vs/MonsterTradingCardsGame/v17/.suo
-MonsterTradingCardsGame/.vs/ProjectEvaluation/monstertradingcardsgame.metadata.v6.1
-MonsterTradingCardsGame/.vs/ProjectEvaluation/monstertradingcardsgame.projects.v6.1
+# End of https://www.toptal.com/developers/gitignore/api/visualstudio,visualstudiocode,csharp
