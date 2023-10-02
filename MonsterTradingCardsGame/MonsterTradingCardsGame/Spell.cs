@@ -8,6 +8,11 @@ namespace MonsterTradingCardsGame
 {
     public class Spell : Card
     {
+        public Spell() : base()
+        {
+            //Random Stats
+        }
+
         public Spell(string name, int dmg, EElementType elementType) : base(name, dmg, elementType)
         {
 

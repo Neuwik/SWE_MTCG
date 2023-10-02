@@ -11,6 +11,11 @@ namespace MonsterTradingCardsGame
         public int HP { get; set; }
         public int MaxHP { get; init; }
 
+        public Monster() : base()
+        {
+            //Random Stats
+        }
+
         public Monster(string name, int dmg, EElementType elementType) : base(name, dmg, elementType)
         {
             MaxHP = 5;
