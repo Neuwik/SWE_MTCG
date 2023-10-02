@@ -16,6 +16,11 @@ namespace MonsterTradingCardsGame
         public string Name { get; private set; }
         public EElementType ElementType { get; private set; }
 
+        public Card()
+        {
+            //Random Stats
+        }
+
         public Card(string name, int dmg, EElementType elementType)
         {
             Name = name;
