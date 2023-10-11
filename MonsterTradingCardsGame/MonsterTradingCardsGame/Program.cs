@@ -1,8 +1,49 @@
-﻿namespace MonsterTradingCardsGame
+﻿using System.Net;
+
+namespace MonsterTradingCardsGame
 {
     internal class Program
     {
         static void Main(string[] args)
+        {
+            try
+            {
+                Thread serverThread = new Thread(StartServer);
+                serverThread.Start();
+                Thread.Sleep(1000);
+                DataHandler.Instance.SendGetRequest();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            finally
+            {
+
+            }
+        }
+
+        static void StartServer()
+        {
+            MTCG_Server server = new MTCG_Server();
+            try
+            {
+                server.Start();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            finally
+            {
+                if (server != null)
+                    server.Stop();
+            }
+        }
+
+        
+
+        static void TestCardCreation()
         {
             Card waterMonster = new Monster("Water Monster", 1, EElementType.WATER);
             Card earthMonster = new Monster("Earth Monster", 3, EElementType.EARTH);
