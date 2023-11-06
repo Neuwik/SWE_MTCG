@@ -12,14 +12,17 @@ namespace MonsterTradingCardsGame
                 serverThread.Start();
                 Thread.Sleep(1000);
                 DataHandler.Instance.SendGetRequest();
+
+                //CardRepo.Instance.DropCardsTable();
+                CardRepo.Instance.Add(new Monster("Water Monster", 1, EElementType.WATER));
+                foreach (Card c in DataHandler.Instance.cards)
+                {
+                    Console.WriteLine(c.ID + " - " + c.Name);
+                }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-            }
-            finally
-            {
-
             }
         }
 

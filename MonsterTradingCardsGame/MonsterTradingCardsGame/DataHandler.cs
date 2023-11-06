@@ -27,14 +27,14 @@ namespace MonsterTradingCardsGame
             }
         }
 
-        private List<User> users;
-        private List<Card> cards;
+        private IEnumerable<User> users;
+        public IEnumerable<Card> cards;
 
         private DataHandler()
         {
             //Get all data from db
             users = new List<User>();
-            cards = new List<Card>();
+            cards = CardRepo.Instance.GetAll();
         }
 
         public void Request(string method, string name)
@@ -46,6 +46,7 @@ namespace MonsterTradingCardsGame
         {
 
         }
+
         public void SendGetRequest()
         {
             // URL des Servers, an den der GET-Request gesendet wird

@@ -22,6 +22,18 @@ namespace MonsterTradingCardsGame
             HP = MaxHP;
         }
 
+        public Monster(string name, int dmg, EElementType elementType, int maxHP) : base(name, dmg, elementType)
+        {
+            MaxHP = maxHP;
+            HP = MaxHP;
+        }
+
+        public Monster(int id, string name, int dmg, EElementType elementType, int HP, int maxHP) : base(id, name, dmg, elementType)
+        {
+            MaxHP = maxHP;
+            HP = MaxHP;
+        }
+
         public override void PlayCard()
         {
             Console.WriteLine($"The Monster {Name} (HP: {HP}, DMG: {DMG}, ElementType: {ElementType}) was played.");

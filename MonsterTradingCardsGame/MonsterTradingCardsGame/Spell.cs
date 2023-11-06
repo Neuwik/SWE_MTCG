@@ -18,6 +18,11 @@ namespace MonsterTradingCardsGame
 
         }
 
+        public Spell(int id, string name, int dmg, EElementType elementType) : base(id, name, dmg, elementType)
+        {
+
+        }
+
         public override void PlayCard()
         {
             Console.WriteLine($"The Spell {Name} (DMG: {DMG}, ElementType: {ElementType}) was played.");

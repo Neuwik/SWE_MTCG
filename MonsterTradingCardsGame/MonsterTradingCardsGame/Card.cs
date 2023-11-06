@@ -11,6 +11,7 @@ namespace MonsterTradingCardsGame
 
     public abstract class Card
     {
+        public readonly int ID;
         public readonly int DMG;
 
         public string Name { get; private set; }
@@ -23,6 +24,15 @@ namespace MonsterTradingCardsGame
 
         public Card(string name, int dmg, EElementType elementType)
         {
+            //Add new Card to db
+            Name = name;
+            DMG = dmg;
+            ElementType = elementType;
+        }
+
+        public Card(int id, string name, int dmg, EElementType elementType)
+        {
+            ID = id;
             Name = name;
             DMG = dmg;
             ElementType = elementType;
