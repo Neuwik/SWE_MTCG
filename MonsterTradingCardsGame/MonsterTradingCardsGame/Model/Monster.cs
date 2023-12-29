@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCardsGame
+namespace MonsterTradingCardsGame.Model
 {
     public class Monster : Card, IHealth
     {
@@ -16,19 +16,13 @@ namespace MonsterTradingCardsGame
             //Random Stats
         }
 
-        public Monster(string name, int dmg, EElementType elementType) : base(name, dmg, elementType)
-        {
-            MaxHP = 5;
-            HP = MaxHP;
-        }
-
-        public Monster(string name, int dmg, EElementType elementType, int maxHP) : base(name, dmg, elementType)
+        public Monster(string name, int dmg, EElementType elementType, int maxHP, int userID) : base(name, dmg, elementType, userID)
         {
             MaxHP = maxHP;
             HP = MaxHP;
         }
 
-        public Monster(int id, string name, int dmg, EElementType elementType, int HP, int maxHP) : base(id, name, dmg, elementType)
+        public Monster(int id, string name, int dmg, EElementType elementType, int HP, int maxHP, bool inDeck, int userID) : base(id, name, dmg, elementType, inDeck, userID)
         {
             MaxHP = maxHP;
             HP = MaxHP;
@@ -47,11 +41,11 @@ namespace MonsterTradingCardsGame
             {
                 HP -= dmg;
             }
-            else if(elementDifference == 1 || elementDifference == -4)
+            else if (elementDifference == 1 || elementDifference == -4)
             {
                 HP -= (int)(dmg * 0.8);
             }
-            else if(elementDifference == -1 || elementDifference == 4)
+            else if (elementDifference == -1 || elementDifference == 4)
             {
                 HP -= (int)(dmg * 1.2);
             }
@@ -59,6 +53,11 @@ namespace MonsterTradingCardsGame
             {
                 HP -= dmg;
             }
+        }
+
+        public override void ResetStats()
+        {
+            HP = MaxHP;
         }
     }
 }

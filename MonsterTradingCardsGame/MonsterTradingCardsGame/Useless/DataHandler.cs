@@ -5,8 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using MonsterTradingCardsGame.Model;
 
-namespace MonsterTradingCardsGame
+namespace MonsterTradingCardsGame.Useless
 {
     public class DataHandler
     {

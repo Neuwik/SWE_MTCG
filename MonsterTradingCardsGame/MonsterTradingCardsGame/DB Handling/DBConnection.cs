@@ -19,7 +19,7 @@ namespace MonsterTradingCardsGame
 
         private DBConnection()
         {
-            string connectionString = $"Server=localhost;Port={PORT};Database={DBNAME};User Id={USERNAME};Password={PASSWORD};";
+            string connectionString = $"Server=localhost;Port={PORT};Database={DBNAME};User ID={USERNAME};Password={PASSWORD};";
             connection = new NpgsqlConnection(connectionString);
         }
 

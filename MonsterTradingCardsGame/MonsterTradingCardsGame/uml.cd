@@ -2,52 +2,52 @@
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="MonsterTradingCardsGame.Card">
     <Position X="6.75" Y="0.5" Width="1.5" />
-    <TypeIdentifier>
+    <TypeIDentifier>
       <HashCode>AAAABAAAAAAAAAAAAAIAAAQAAIAAAAAAAAAAEAAAAAA=</HashCode>
       <FileName>Card.cs</FileName>
-    </TypeIdentifier>
+    </TypeIDentifier>
     <ShowAsAssociation>
       <Property Name="ElementType" />
     </ShowAsAssociation>
   </Class>
   <Class Name="MonsterTradingCardsGame.Monster">
     <Position X="8.5" Y="3.25" Width="1.5" />
-    <TypeIdentifier>
+    <TypeIDentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAEAAAQAAAACAAAAAAEAAAAAA=</HashCode>
       <FileName>Monster.cs</FileName>
-    </TypeIdentifier>
+    </TypeIDentifier>
     <Lollipop Position="1.267" />
   </Class>
   <Class Name="MonsterTradingCardsGame.Package">
     <Position X="4.25" Y="0.5" Width="1.5" />
-    <TypeIdentifier>
+    <TypeIDentifier>
       <HashCode>AAAAAAAAAAAQAAAAAAgAAAAAAAAAAAAAAAAAAAAABAA=</HashCode>
       <FileName>Package.cs</FileName>
-    </TypeIdentifier>
+    </TypeIDentifier>
     <ShowAsCollectionAssociation>
       <Field Name="cards" />
     </ShowAsCollectionAssociation>
   </Class>
   <Class Name="MonsterTradingCardsGame.Program" Collapsed="true">
     <Position X="13.75" Y="0.5" Width="1.5" />
-    <TypeIdentifier>
+    <TypeIDentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
       <FileName>Program.cs</FileName>
-    </TypeIdentifier>
+    </TypeIDentifier>
   </Class>
   <Class Name="MonsterTradingCardsGame.Spell">
     <Position X="5.25" Y="4" Width="1.5" />
-    <TypeIdentifier>
+    <TypeIDentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAA=</HashCode>
       <FileName>Spell.cs</FileName>
-    </TypeIdentifier>
+    </TypeIDentifier>
   </Class>
   <Class Name="MonsterTradingCardsGame.User" BaseTypeListCollapsed="true">
     <Position X="10.5" Y="0.5" Width="1.5" />
-    <TypeIdentifier>
+    <TypeIDentifier>
       <HashCode>AAAAAAAAAAAAAAACAwAAGAAIQAAAECAAAABAAAAAAAA=</HashCode>
       <FileName>User.cs</FileName>
-    </TypeIdentifier>
+    </TypeIDentifier>
     <ShowAsCollectionAssociation>
       <Property Name="Cards" />
       <Property Name="Deck" />
@@ -56,24 +56,24 @@
   </Class>
   <Class Name="MonsterTradingCardsGame.Game" Collapsed="true">
     <Position X="13.75" Y="1.75" Width="1.5" />
-    <TypeIdentifier>
+    <TypeIDentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Game.cs</FileName>
-    </TypeIdentifier>
+    </TypeIDentifier>
   </Class>
   <Interface Name="MonsterTradingCardsGame.IHealth">
     <Position X="10.5" Y="4" Width="1.5" />
-    <TypeIdentifier>
+    <TypeIDentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAEAAAQAAAACAAAAAAAAAAAAA=</HashCode>
       <FileName>IHealth.cs</FileName>
-    </TypeIdentifier>
+    </TypeIDentifier>
   </Interface>
   <Enum Name="MonsterTradingCardsGame.EElementType">
     <Position X="3.25" Y="2.5" Width="1.5" />
-    <TypeIdentifier>
+    <TypeIDentifier>
       <HashCode>AAAAAAAAACgAAAAAAEAAAAAAAAAAAEAAAAAAQAAAAQA=</HashCode>
       <FileName>Card.cs</FileName>
-    </TypeIdentifier>
+    </TypeIDentifier>
   </Enum>
   <Font Name="Segoe UI" Size="9" />
 </ClassDiagram>

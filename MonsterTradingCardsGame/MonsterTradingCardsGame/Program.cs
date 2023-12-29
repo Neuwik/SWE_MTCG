@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using MonsterTradingCardsGame.Model;
 
 namespace MonsterTradingCardsGame
 {
@@ -6,24 +7,25 @@ namespace MonsterTradingCardsGame
     {
         static void Main(string[] args)
         {
-            try
+            StartServer();
+            /*try
             {
                 Thread serverThread = new Thread(StartServer);
                 serverThread.Start();
                 //Thread.Sleep(1000);
-                /*DataHandler.Instance.SendGetRequest();
+                DataHandler.Instance.SendGetRequest();
 
                 //CardRepo.Instance.DropCardsTable();
                 CardRepo.Instance.Add(new Monster("Water Monster", 1, EElementType.WATER));
                 foreach (Card c in DataHandler.Instance.cards)
                 {
                     Console.WriteLine(c.ID + " - " + c.Name);
-                }*/
+                }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-            }
+            }*/
         }
 
         static void StartServer()
@@ -48,20 +50,20 @@ namespace MonsterTradingCardsGame
 
         static void TestCardCreation()
         {
-            Card waterMonster = new Monster("Water Monster", 1, EElementType.WATER);
-            Card earthMonster = new Monster("Earth Monster", 3, EElementType.EARTH);
-            Card fireMonster = new Monster("Fire Monster", 5, EElementType.FIRE);
-            Card windSpell = new Spell("Wind Spell", 2, EElementType.WIND);
-            Card lightningSpell = new Spell("Lightning Spell", 4, EElementType.LIGHTNING);
+            Card waterMonster = new Monster("Water Monster", 1, EElementType.WATER, 5, 1);
+            Card earthMonster = new Monster("Earth Monster", 3, EElementType.EARTH, 5, 1);
+            Card fireMonster = new Monster("Fire Monster", 5, EElementType.FIRE, 5, 1);
+            Card windSpell = new Spell("Wind Spell", 2, EElementType.WIND, 3, 1);
+            Card lightningSpell = new Spell("Lightning Spell", 4, EElementType.LIGHTNING, 3, 1);
 
-            User user1 = new User("User1", "1234");
+            User user1 = new User("User1", "1234", "abc");
             user1.AddCardToDeck(waterMonster);
             user1.AddCardToDeck(earthMonster);
             user1.AddCardToDeck(fireMonster);
             user1.AddCardToDeck(windSpell);
             user1.AddCardToDeck(lightningSpell);
 
-            User user2 = new User("User2", "1234");
+            User user2 = new User("User2", "1234", "def");
 
             Console.WriteLine($"User 2 starts with {user2.HP}/{user2.MaxHP} HP");
 
