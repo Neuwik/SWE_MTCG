@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MonsterTradingCardsGame
@@ -37,7 +39,7 @@ namespace MonsterTradingCardsGame
                 string request = ReadRequest();
                 Dictionary<string, string> requestParams = SplitRequestParams(request);
 
-                Console.WriteLine(request);
+                //Console.WriteLine(request);
                 foreach (var param in requestParams)
                 {
                     Console.WriteLine($"\t{param.Key}\t->\t{param.Value}");
@@ -153,36 +155,91 @@ namespace MonsterTradingCardsGame
 
         private Dictionary<string, string> SplitRequestParams(string request)
         {
-            /*
-            Split Request to Format:
-            EMPTY STRING
-            key
-            :
-            value
-            ,
-            key
-            :
-            value
-            ,
-            ....
-            */
-            string[] splitRequest = request.Split('{')[1].Split('}')[0].Split('\"');
             Dictionary<string, string> requestParams = new Dictionary<string, string>();
 
-            for (int i = 3; i < splitRequest.Length; i+=4)
+            // Extract headers
+            var headers = request.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            string contentType = "";
+            string authorizationHeader = "";
+
+            foreach (var header in headers)
             {
-                requestParams.Add(splitRequest[i-2], splitRequest[i]);
+                if (header.StartsWith("Content-Type:"))
+                {
+                    contentType = header.Replace("Content-Type:", "").Trim();
+                }
+                else if (header.StartsWith("Authorization:"))
+                {
+                    authorizationHeader = header.Replace("Authorization:", "").Trim();
+                    requestParams.Add("Token", authorizationHeader);
+                }
             }
 
-            /*
-            Console.WriteLine(request);
-            foreach (var param in requestParams)
+
+            // Check if Content-Type is application/json
+            if (!string.IsNullOrEmpty(contentType) && contentType.ToLower().Contains("application/json"))
             {
-                Console.WriteLine($"\t{param.Key}\t->\t{param.Value}");
+                // Extract JSON data
+                int databodyStartIndex = request.IndexOf("\r\n\r\n"); // Find the start of the body
+                if (databodyStartIndex >= 0)
+                {
+                    databodyStartIndex += 4;
+                    string data = request.Substring(databodyStartIndex);
+
+                    if (data.StartsWith("[") && data.EndsWith("]"))
+                    {
+                        data = data.Trim('[', ']');
+                        if (data.StartsWith("{") && data.EndsWith("}"))
+                        {
+                            string[] splitData = data.Split("},");
+                            for (int i = 0; i < splitData.Length; i++)
+                            {
+                                requestParams.Add("JSON" + i.ToString(), "{" + splitData[i].Trim('{', '}', ' ') + "}");
+                            }
+                        }
+                        else
+                        {
+                            string[] splitData = data.Split(',');
+                            for (int i = 0; i < splitData.Length; i++)
+                            {
+                                requestParams.Add(i.ToString(), splitData[i].Trim('\"', ' '));
+                            }
+                        }
+                    }
+                    else
+                    {
+
+                        if (data.StartsWith("{") && data.EndsWith("}"))
+                        {
+                            requestParams.Add("JSON0", data);
+                        }
+                        else
+                        {
+                            requestParams.Add("0", data);
+                        }
+                    }
+                }
             }
-            */
 
             return requestParams;
+        }
+
+        private string[] ParseJsonArray(string jsonString)
+        {
+            // Assuming JSON array is represented as an array of strings
+            // For simplicity, a basic parsing approach is shown here.
+            // This might need further enhancement to handle edge cases.
+
+            // Remove the square brackets and split by comma to get individual elements
+            string[] elements = jsonString.Trim('[', ']').Split(',');
+
+            // Trim extra spaces and quotes from each element
+            for (int i = 0; i < elements.Length; i++)
+            {
+                elements[i] = elements[i].Trim(' ', '"');
+            }
+
+            return elements;
         }
 
         private void SendResponse(string response)
@@ -193,13 +250,13 @@ namespace MonsterTradingCardsGame
 
         private void SendResponse200OKMessage(string message)
         {
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n{Message:"+message+"}\r\n";
+            string response = $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nMessage: {message}\r\n";
             SendResponse(response);
         }
 
         private void SendResponse200OKData(Dictionary<string,string> data)
         {
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n{";
+            string response = "HTTP/1.1 200 OK\r\nContent-Type: application/json -d \r\n\r\n{";
             foreach (var item in data)
             {
                 response += $"{item.Key}:{item.Value},";
