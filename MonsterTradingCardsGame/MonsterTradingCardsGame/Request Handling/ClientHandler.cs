@@ -191,11 +191,28 @@ namespace MonsterTradingCardsGame
             client.Send(responseBytes);
         }
 
+        private void SendResponse200OKMessage(string message)
+        {
+            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n{Message:"+message+"}\r\n";
+            SendResponse(response);
+        }
+
+        private void SendResponse200OKData(Dictionary<string,string> data)
+        {
+            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n{";
+            foreach (var item in data)
+            {
+                response += $"{item.Key}:{item.Value},";
+            }
+            response = response.Remove(response.Length - 1, 1) + "}\r\n";
+            SendResponse(response);
+        }
+
         private void HandleUserRegistration(Dictionary<string, string> requestParams)
         {
             // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleUserRegistration";
-            SendResponse(response);
+            string message = "HandleUserRegistration";
+            SendResponse200OKMessage(message);
         }
 
         private void HandleLogin(Dictionary<string, string> requestParams)
