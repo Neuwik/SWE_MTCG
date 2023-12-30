@@ -37,7 +37,7 @@ namespace MonsterTradingCardsGame
         {
             using (IDbCommand command = connection.CreateCommand())
             {
-                command.CommandText = "CREATE TABLE IF NOT EXISTS Cards (ID SERIAL PRIMARY KEY, Name VARCHAR(255), DMG INT, ElementType INT, HP INT, MaxHP INT, Uses INT, MaxUses INT, InDeck BOOLEAN, UserID INT REFERENCES Users(ID))";
+                command.CommandText = "CREATE TABLE IF NOT EXISTS Cards (ID SERIAL PRIMARY KEY, Name VARCHAR(255), DMG INT, ElementType INT, MaxHP INT, MaxUses INT, InDeck BOOLEAN, UserID INT REFERENCES Users(ID))";
                 command.ExecuteNonQuery();
             }
         }
@@ -56,7 +56,7 @@ namespace MonsterTradingCardsGame
         {
             using (IDbCommand command = connection.CreateCommand())
             {
-                command.CommandText = "INSERT INTO Cards (Name, DMG, ElementType, HP, MaxHP, Uses, MaxUses, InDeck, UserID) VALUES (@Name, @DMG, @ElementType, @HP, @MaxHP, @Uses, @MaxUses, @InDeck, @UserID)";
+                command.CommandText = "INSERT INTO Cards (Name, DMG, ElementType, MaxHP, MaxUses, InDeck, UserID) VALUES (@Name, @DMG, @ElementType, @MaxHP, @MaxUses, @InDeck, @UserID)";
                 command.AddParameter("Name", card.Name);
                 command.AddParameter("DMG", card.DMG);
                 command.AddParameter("ElementType", (int)card.ElementType);
@@ -65,16 +65,12 @@ namespace MonsterTradingCardsGame
 
                 if (card is Monster monster)
                 {
-                    command.AddParameter("HP", monster.HP);
                     command.AddParameter("MaxHP", monster.MaxHP);
-                    command.AddParameter("Uses", DBNull.Value);
                     command.AddParameter("MaxUses", DBNull.Value);
                 }
                 else if (card is Spell spell)
                 {
-                    command.AddParameter("HP", DBNull.Value);
                     command.AddParameter("MaxHP", DBNull.Value);
-                    command.AddParameter("Uses", spell.Uses);
                     command.AddParameter("MaxUses", spell.MaxUses);
                 }
                 else
@@ -106,14 +102,12 @@ namespace MonsterTradingCardsGame
             {
                 if (card is Monster monster)
                 {
-                    command.CommandText = "UPDATE Cards SET Name = @Name, DMG = @DMG, ElementType = @ElementType, HP = @HP, MaxHP = @MaxHP, InDeck = @InDeck, UserID = @UserID WHERE ID = @ID";
-                    command.AddParameter("HP", monster.HP);
+                    command.CommandText = "UPDATE Cards SET Name = @Name, DMG = @DMG, ElementType = @ElementType, MaxHP = @MaxHP, InDeck = @InDeck, UserID = @UserID WHERE ID = @ID";
                     command.AddParameter("MaxHP", monster.MaxHP);
                 }
                 else if (card is Spell spell)
                 {
-                    command.CommandText = "UPDATE Cards SET Name = @Name, DMG = @DMG, ElementType = @ElementType, Uses = @Uses, MaxUses = @MaxUses, InDeck = @InDeck, UserID = @UserID WHERE ID = @ID";
-                    command.AddParameter("Uses", spell.Uses);
+                    command.CommandText = "UPDATE Cards SET Name = @Name, DMG = @DMG, ElementType = @ElementType, MaxUses = @MaxUses, InDeck = @InDeck, UserID = @UserID WHERE ID = @ID";
                     command.AddParameter("MaxUses", spell.MaxUses);
                 }
                 else
@@ -213,20 +207,18 @@ namespace MonsterTradingCardsGame
                 string name = reader.GetString(reader.GetOrdinal("Name"));
                 int dmg = reader.GetInt32(reader.GetOrdinal("DMG"));
                 EElementType elementType = (EElementType)reader.GetInt32(reader.GetOrdinal("ElementType"));
-                int hp = reader.GetInt32(reader.GetOrdinal("HP"));
                 int maxHP = reader.GetInt32(reader.GetOrdinal("MaxHP"));
-                int uses = reader.GetInt32(reader.GetOrdinal("Uses"));
                 int maxUses = reader.GetInt32(reader.GetOrdinal("MaxUses"));
                 bool inDeck = reader.GetBoolean(reader.GetOrdinal("InDeck"));
                 int userID = reader.GetInt32(reader.GetOrdinal("UserID"));
 
                 if (maxHP != null && maxHP != 0)
                 {
-                    return new Monster(id, name, dmg, elementType, hp, maxHP, inDeck, userID);
+                    return new Monster(id, name, dmg, elementType, maxHP, inDeck, userID);
                 }
                 else if (maxUses != null && maxUses != 0)
                 {
-                    return new Spell(id, name, dmg, elementType, uses, maxUses, inDeck, userID);
+                    return new Spell(id, name, dmg, elementType, maxUses, inDeck, userID);
                 }
             }
             return null;

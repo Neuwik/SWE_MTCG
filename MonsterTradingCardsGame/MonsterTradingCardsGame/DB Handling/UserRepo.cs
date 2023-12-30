@@ -8,7 +8,7 @@ using MonsterTradingCardsGame.Model;
 
 namespace MonsterTradingCardsGame
 {
-    public class UserRepo : IRepository<Card>
+    public class UserRepo : IRepository<User>
     {
         private static UserRepo instance;
         private IDbConnection connection;
@@ -35,7 +35,7 @@ namespace MonsterTradingCardsGame
         {
             using (IDbCommand command = connection.CreateCommand())
             {
-                command.CommandText = "CREATE TABLE IF NOT EXISTS Users (ID SERIAL PRIMARY KEY, Username VARCHAR(255) UNIQUE, Password VARCHAR(255), Token VARCHAR(255) UNIQUE, Coins INT, HP INT, MaxHP INT)";
+                command.CommandText = "CREATE TABLE IF NOT EXISTS Users (ID SERIAL PRIMARY KEY, Username VARCHAR(255) UNIQUE, Password VARCHAR(255), Token VARCHAR(255) UNIQUE, Coins INT, MaxHP INT)";
                 command.ExecuteNonQuery();
             }
         }
@@ -50,9 +50,18 @@ namespace MonsterTradingCardsGame
             }
         }
 
-        public void Add(Card entity)
+        public void Add(User user)
         {
-            throw new NotImplementedException();
+            using (IDbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "INSERT INTO Users (Username, Password, Token, Coins, MaxHP) VALUES (@Username, @Password, @Token, @Coins, @MaxHP)";
+                command.AddParameter("Username", user.Username);
+                command.AddParameter("Password", user.Password);
+                command.AddParameter("Token", user.Token);
+                command.AddParameter("Coins", user.Coins);
+                command.AddParameter("MaxHP", user.MaxHP);
+                command.ExecuteNonQuery();
+            }
         }
 
         public void Delete(int id)
@@ -60,17 +69,17 @@ namespace MonsterTradingCardsGame
             throw new NotImplementedException();
         }
 
-        public IEnumerable<Card> GetAll()
+        public IEnumerable<User> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public Card GetByID(int id)
+        public User GetByID(int id)
         {
             throw new NotImplementedException();
         }
 
-        public void Update(Card entity)
+        public void Update(User user)
         {
             throw new NotImplementedException();
         }

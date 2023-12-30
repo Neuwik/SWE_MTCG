@@ -11,7 +11,7 @@ namespace MonsterTradingCardsGame.Model
         const int DECK_SIZE = 4;
 
         //Should not be safed
-        private readonly string PASSWORD;
+        public readonly string Password;
 
         public string Username { get; private set; }
         public string Token { get; private set; }
@@ -20,16 +20,16 @@ namespace MonsterTradingCardsGame.Model
         public Card[] Deck { get; private set; }
 
         public int HP { get; set; }
-        public int MaxHP { get; init; }
+        public int MaxHP { get; init; } = 10;
 
         public User(string username, string password, string token)
         {
             Coins = 20;
-            MaxHP = 30;
+            MaxHP = 10;
             HP = MaxHP;
             Username = username;
             Token = token;
-            PASSWORD = password;
+            Password = password;
             Cards = new List<Card>();
             Deck = new Card[DECK_SIZE];
         }

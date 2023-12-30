@@ -22,10 +22,16 @@ namespace MonsterTradingCardsGame.Model
             HP = MaxHP;
         }
 
-        public Monster(int id, string name, int dmg, EElementType elementType, int HP, int maxHP, bool inDeck, int userID) : base(id, name, dmg, elementType, inDeck, userID)
+        public Monster(int id, string name, int dmg, EElementType elementType, int maxHP, bool inDeck, int userID) : base(id, name, dmg, elementType, inDeck, userID)
         {
             MaxHP = maxHP;
             HP = MaxHP;
+        }
+
+        public Monster(int id, string name, int dmg, EElementType elementType, int hp, int maxHP, bool inDeck, int userID) : base(id, name, dmg, elementType, inDeck, userID)
+        {
+            MaxHP = maxHP;
+            HP = hp;
         }
 
         public override void PlayCard()

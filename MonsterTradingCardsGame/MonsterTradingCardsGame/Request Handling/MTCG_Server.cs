@@ -26,6 +26,8 @@ namespace MonsterTradingCardsGame
 
         public void Start()
         {
+            Console.WriteLine(UserRepo.Instance.ToString());
+            Console.WriteLine(CardRepo.Instance.ToString());
             listener.Bind(new IPEndPoint(IPAddress.Loopback, PORT));
             listener.Listen(backlog);
             Console.WriteLine("HTTP-Server gestartet. Warte auf Verbindungen...");

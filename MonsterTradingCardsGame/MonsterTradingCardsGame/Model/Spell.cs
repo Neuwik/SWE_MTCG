@@ -23,6 +23,12 @@ namespace MonsterTradingCardsGame.Model
             Uses = MaxUses;
         }
 
+        public Spell(int id, string name, int dmg, EElementType elementType, int maxUses, bool inDeck, int userID) : base(id, name, dmg, elementType, inDeck, userID)
+        {
+            MaxUses = maxUses;
+            Uses = MaxUses;
+        }
+
         public Spell(int id, string name, int dmg, EElementType elementType, int uses, int maxUses, bool inDeck, int userID) : base(id, name, dmg, elementType, inDeck, userID)
         {
             MaxUses = maxUses;
