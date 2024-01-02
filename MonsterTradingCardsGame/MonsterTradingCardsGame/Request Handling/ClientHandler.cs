@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MonsterTradingCardsGame.Model;
+using MonsterTradingCardsGame.Request_Handling;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,6 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MonsterTradingCardsGame
 {
@@ -14,14 +17,16 @@ namespace MonsterTradingCardsGame
         private Socket client;
         private List<string> requestHistory;
         private const int bufferSize = 1024;
-        private Thread thread;
 
         public ClientHandler(Socket client)
         {
             this.client = client;
             requestHistory = new List<string>();
-            thread = new Thread(HandleRequest);
-            thread.Start();
+        }
+
+        public void Start(object state)
+        {
+            HandleRequest();
         }
 
         private string ReadRequest()
@@ -44,7 +49,6 @@ namespace MonsterTradingCardsGame
                 {
                     Console.WriteLine($"\t{param.Key}\t->\t{param.Value}");
                 }
-
                 if (request.StartsWith("POST"))
                 {
                     if (request.StartsWith("POST /users"))
@@ -74,7 +78,7 @@ namespace MonsterTradingCardsGame
                     // Add more conditions to differentiate between different POST endpoints
                     else
                     {
-                        SendResponse("HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\nEndpoint not found");
+                        throw new BadRequestException();
                     }
                 }
                 else if (request.StartsWith("GET"))
@@ -106,7 +110,7 @@ namespace MonsterTradingCardsGame
                     // Add more conditions to differentiate between different GET endpoints
                     else
                     {
-                        SendResponse("HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\nEndpoint not found");
+                        throw new BadRequestException();
                     }
                 }
                 else if (request.StartsWith("PUT"))
@@ -122,7 +126,7 @@ namespace MonsterTradingCardsGame
                     // Add more conditions to differentiate between different PUT endpoints
                     else
                     {
-                        SendResponse("HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\nEndpoint not found");
+                        throw new BadRequestException();
                     }
                 }
                 else if (request.StartsWith("DELETE"))
@@ -134,21 +138,31 @@ namespace MonsterTradingCardsGame
                     // Add more conditions to differentiate between different DELETE endpoints
                     else
                     {
-                        SendResponse("HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\nEndpoint not found");
+                        throw new BadRequestException();
                     }
                 }
                 else
                 {
-                    SendResponse("HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain\r\n\r\nBad Request");
+                    throw new BadRequestException();
                 }
+            }
+            catch (HttpResponseExcetion e)
+            {
+                Console.WriteLine(e.ToString());
+                SendResponseExcetion(e);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                SendResponse("HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain\r\n\r\nBad Request");
+                Console.WriteLine("Some unexpected Error: " + e.Message);
+                if(!(client.Poll(1000, SelectMode.SelectRead) && client.Available == 0))
+                {
+                    SendResponseExcetion(new InternalServerErrorException(e.Message));
+                }
             }
             finally
             {
+                //Console.WriteLine("CLOSE");
+                client.Shutdown(SocketShutdown.Both);
                 client.Close();
             }
         }
@@ -248,15 +262,15 @@ namespace MonsterTradingCardsGame
             client.Send(responseBytes);
         }
 
-        private void SendResponse200OKMessage(string message)
+        private void SendResponseMessage(string message, string responseCode = "200 OK")
         {
-            string response = $"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nMessage: {message}\r\n";
+            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: text/plain\r\n\r\nMessage: {message}\r\n";
             SendResponse(response);
         }
 
-        private void SendResponse200OKData(Dictionary<string,string> data)
+        private void SendResponseData(Dictionary<string,string> data, string responseCode = "200 OK")
         {
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: application/json -d \r\n\r\n{";
+            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: application/json -d \r\n\r\n{"{"}";
             foreach (var item in data)
             {
                 response += $"{item.Key}:{item.Value},";
@@ -265,18 +279,84 @@ namespace MonsterTradingCardsGame
             SendResponse(response);
         }
 
+        private void SendResponseExcetion(HttpResponseExcetion responseExcetion)
+        {
+            string response = $"HTTP/1.1 {responseExcetion.ResponseCode}\r\nContent-Type: text/plain\r\n\r\n{responseExcetion.Message}\r\n";
+            SendResponse(response);
+        }
+
         private void HandleUserRegistration(Dictionary<string, string> requestParams)
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string message = "HandleUserRegistration";
-            SendResponse200OKMessage(message);
+            string jsonUserString = requestParams.Where(pair => pair.Key.StartsWith("JSON")).FirstOrDefault().Value;
+            JsonElement jsonUser = JsonDocument.Parse(jsonUserString).RootElement;
+
+            string username = null;
+            string password = null;
+
+            if (jsonUser.TryGetProperty("Username", out JsonElement usernameElement) && usernameElement.ValueKind != JsonValueKind.Null)
+            {
+                username = usernameElement.GetString();
+            }
+
+            if (jsonUser.TryGetProperty("Password", out JsonElement passwordElement) && passwordElement.ValueKind != JsonValueKind.Null)
+            {
+                password = passwordElement.GetString();
+            }
+
+            if (username == null || password == null)
+            {
+                throw new WrongParametersException("Registration Failed");
+            }
+            if(UserRepo.Instance.UsernameExists(username))
+            {
+                throw new InputNotAllowedException("Username Already Exists");
+            }
+
+            User user = new User(username, password);
+            UserRepo.Instance.Add(user);
+            string message = user.Username + " was registered";
+            SendResponseMessage(message, "201 Created");
         }
 
         private void HandleLogin(Dictionary<string, string> requestParams)
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleLogin";
-            SendResponse(response);
+            string jsonUserString = requestParams.Where(pair => pair.Key.StartsWith("JSON")).FirstOrDefault().Value;
+            JsonElement jsonUser = JsonDocument.Parse(jsonUserString).RootElement;
+
+            string username = null;
+            string password = null;
+
+            if (jsonUser.TryGetProperty("Username", out JsonElement usernameElement) && usernameElement.ValueKind != JsonValueKind.Null)
+            {
+                username = usernameElement.GetString();
+            }
+
+            if (jsonUser.TryGetProperty("Password", out JsonElement passwordElement) && passwordElement.ValueKind != JsonValueKind.Null)
+            {
+                password = passwordElement.GetString();
+            }
+
+            if (username == null || password == null)
+            {
+                throw new WrongParametersException("Login Failed");
+            }
+
+            string token = UserRepo.Instance.GetTokenByUsernamePassword(username, password);
+            if (token == null) 
+            {
+                throw new NothingFoundException("Wrong Username or Password");
+            }
+            else if(MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            {
+                throw new AlreadyLoggedInException("Login Failed");
+            }
+            else
+            {
+                MTCG_Server.Instance.LoggedInUsers.Add(token);
+            }
+
+            string message = "User logged in: " + token;
+            SendResponseMessage(message);
         }
 
         private void HandleCreatePackages(Dictionary<string, string> requestParams)

@@ -7,6 +7,7 @@ namespace MonsterTradingCardsGame
     {
         static void Main(string[] args)
         {
+            ResetDB();
             StartServer();
             /*try
             {
@@ -30,7 +31,7 @@ namespace MonsterTradingCardsGame
 
         static void StartServer()
         {
-            MTCG_Server server = new MTCG_Server();
+            MTCG_Server server = MTCG_Server.Instance;
             try
             {
                 server.Start();
@@ -46,7 +47,11 @@ namespace MonsterTradingCardsGame
             }
         }
 
-        
+        static void ResetDB()
+        {
+            CardRepo.Instance.DropCardsTable();
+            UserRepo.Instance.DropUsersTable();
+        }
 
         static void TestCardCreation()
         {
@@ -56,14 +61,14 @@ namespace MonsterTradingCardsGame
             Card windSpell = new Spell("Wind Spell", 2, EElementType.WIND, 3, 1);
             Card lightningSpell = new Spell("Lightning Spell", 4, EElementType.LIGHTNING, 3, 1);
 
-            User user1 = new User("User1", "1234", "abc");
+            User user1 = new User("User1", "1234");
             user1.AddCardToDeck(waterMonster);
             user1.AddCardToDeck(earthMonster);
             user1.AddCardToDeck(fireMonster);
             user1.AddCardToDeck(windSpell);
             user1.AddCardToDeck(lightningSpell);
 
-            User user2 = new User("User2", "1234", "def");
+            User user2 = new User("User2", "1234");
 
             Console.WriteLine($"User 2 starts with {user2.HP}/{user2.MaxHP} HP");
 
