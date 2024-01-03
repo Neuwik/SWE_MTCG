@@ -1,6 +1,8 @@
 ﻿using MonsterTradingCardsGame.Model;
 using MonsterTradingCardsGame.Request_Handling;
+using MonsterTradingCardsGame.Useless;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -184,7 +186,7 @@ namespace MonsterTradingCardsGame
                 }
                 else if (header.StartsWith("Authorization:"))
                 {
-                    authorizationHeader = header.Replace("Authorization:", "").Trim();
+                    authorizationHeader = header.Replace("Authorization: Bearer", "").Trim();
                     requestParams.Add("Token", authorizationHeader);
                 }
             }
@@ -229,7 +231,8 @@ namespace MonsterTradingCardsGame
                         }
                         else
                         {
-                            requestParams.Add("0", data);
+                            if(data != "")
+                                requestParams.Add("0", data);
                         }
                     }
                 }
@@ -314,6 +317,18 @@ namespace MonsterTradingCardsGame
 
             User user = new User(username, password);
             UserRepo.Instance.Add(user);
+
+            user = UserRepo.Instance.GetByUsernamePassword(username, password);
+            if (user == null)
+            {
+                throw new InternalServerErrorException("Registration Failed");
+            }
+
+            user.AddNewCards(Package.GetStarterPackage());
+            foreach (Card card in user.Cards)
+            {
+                CardRepo.Instance.Add(card);
+            }
             string message = user.Username + " was registered";
             SendResponseMessage(message, "201 Created");
         }
@@ -361,9 +376,8 @@ namespace MonsterTradingCardsGame
 
         private void HandleCreatePackages(Dictionary<string, string> requestParams)
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleCreatePackages";
-            SendResponse(response);
+            string message = "Useless, Cardpacks are random";
+            SendResponseMessage(message);
         }
 
         private void HandleGetCards(Dictionary<string, string> requestParams)
@@ -389,9 +403,39 @@ namespace MonsterTradingCardsGame
 
         private void HandleAcquirePackages(Dictionary<string, string> requestParams)
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleAcquirePackages";
-            SendResponse(response);
+            string token = requestParams["Token"];
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            {
+                throw new NotLoggedInException("Not Logged In");
+            }
+
+            //TODO get User by Tocken -> if user = null
+            User user = UserRepo.Instance.GetByToken(token);
+            if (user == null)
+            {
+                throw new InputNotAllowedException("User does not Exists");
+            }
+
+            //TODO Packet type at requestParams["0"]
+            List<Card> cards = user.BuyPackage();
+            if (cards == null)
+            {
+                throw new NothingFoundException("Not enough Coins");
+            }
+
+            foreach (Card card in cards)
+            {
+                CardRepo.Instance.Add(card);
+            }
+            UserRepo.Instance.Update(user);
+
+            string message = user.Username + " has " + cards.Count + " new Cards.";
+            SendResponseMessage(message, "201 Created");
         }
 
         private void HandleCreateTradingDeal(Dictionary<string, string> requestParams)

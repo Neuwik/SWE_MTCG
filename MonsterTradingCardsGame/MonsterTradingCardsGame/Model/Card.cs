@@ -66,6 +66,7 @@ namespace MonsterTradingCardsGame.Model
         public void TradeCard(int userID)
         {
             UserID = userID;
+            Console.WriteLine(UserID);
             ResetStats();
         }
 

@@ -34,10 +34,10 @@ namespace MonsterTradingCardsGame.Request_Handling
         public InternalServerErrorException(string message) : base("500 Internal Server Error", message) { }
     }
 
-    public class NotImplementedException : HttpResponseExcetion
+    public class NotYetImplementedException : HttpResponseExcetion
     {
-        public NotImplementedException() : base("501 Not Implemented") { }
-        public NotImplementedException(string message) : base("501 Not Implemented", message) { }
+        public NotYetImplementedException() : base("501 Not Implemented") { }
+        public NotYetImplementedException(string message) : base("501 Not Implemented", message) { }
     }
 
     public class BadRequestException : HttpResponseExcetion

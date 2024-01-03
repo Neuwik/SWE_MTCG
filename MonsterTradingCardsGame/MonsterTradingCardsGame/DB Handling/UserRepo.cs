@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using MonsterTradingCardsGame.Model;
 
@@ -77,22 +78,75 @@ namespace MonsterTradingCardsGame
 
         public void Delete(int id)
         {
-            throw new NotImplementedException();
+            using (IDbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "DELETE FROM Users WHERE ID = @ID";
+                command.AddParameter("ID", id);
+                command.ExecuteNonQuery();
+            }
         }
 
         public IEnumerable<User> GetAll()
         {
-            throw new NotImplementedException();
+            List<User> users = new List<User>();
+
+            using (IDbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM Users";
+
+                using (IDataReader reader = command.ExecuteReader())
+                {
+                    User user;
+                    while ((user = ReadUserFromReader(reader)) != null)
+                    {
+                        users.Add(user);
+                    }
+                }
+            }
+
+            return users;
         }
 
         public User GetByID(int id)
         {
-            throw new NotImplementedException();
+            using (IDbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM Users WHERE ID = @ID";
+                command.AddParameter("ID", id);
+
+                using (IDataReader reader = command.ExecuteReader())
+                {
+                    return ReadUserFromReader(reader);
+                }
+            }
         }
 
         public void Update(User user)
         {
-            throw new NotImplementedException();
+            using (IDbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = @"UPDATE Users 
+                                        SET Username = @Username, 
+                                            Password = @Password, 
+                                            Token = @Token, 
+                                            Coins = @Coins, 
+                                            Elo = @Elo, 
+                                            Wins = @Wins, 
+                                            Losses = @Losses, 
+                                            MaxHP = @MaxHP 
+                                        WHERE ID = @ID";
+
+                command.AddParameter("@ID", user.ID);
+                command.AddParameter("@Username", user.Username);
+                command.AddParameter("@Password", user.Password);
+                command.AddParameter("@Token", user.Token);
+                command.AddParameter("@Coins", user.Coins);
+                command.AddParameter("@Elo", user.Elo);
+                command.AddParameter("@Wins", user.Wins);
+                command.AddParameter("@Losses", user.Losses);
+                command.AddParameter("@MaxHP", user.MaxHP);
+                command.ExecuteNonQuery();
+            }
         }
 
         public string GetTokenByUsernamePassword(string username, string password)
@@ -130,6 +184,56 @@ namespace MonsterTradingCardsGame
                 }
             }
             return false;
+        }
+
+        public User GetByUsernamePassword(string username, string password)
+        {
+            using (IDbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM Users WHERE Username = @Username AND  Password = @Password";
+                command.AddParameter("Username", username);
+                command.AddParameter("Password", password);
+
+                using (IDataReader reader = command.ExecuteReader())
+                {
+                    return ReadUserFromReader(reader);
+                }
+            }
+            return null;
+        }
+
+        public User GetByToken(string token)
+        {
+            using (IDbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT * FROM Users WHERE Token = @Token";
+                command.AddParameter("Token", token);
+
+                using (IDataReader reader = command.ExecuteReader())
+                {
+                    return ReadUserFromReader(reader);
+                }
+            }
+            return null;
+        }
+
+        private User ReadUserFromReader(IDataReader reader)
+        {
+            if (reader.Read())
+            {
+                int id = reader.GetInt32(reader.GetOrdinal("ID"));
+                string username = reader.GetString(reader.GetOrdinal("Username"));
+                string password = reader.GetString(reader.GetOrdinal("Password"));
+                string token = reader.GetString(reader.GetOrdinal("Token"));
+                int coins = reader.GetInt32(reader.GetOrdinal("Coins"));
+                int elo = reader.GetInt32(reader.GetOrdinal("Elo"));
+                int wins = reader.GetInt32(reader.GetOrdinal("Wins"));
+                int losses = reader.GetInt32(reader.GetOrdinal("Losses"));
+                int maxHP = reader.GetInt32(reader.GetOrdinal("MaxHP"));
+
+                return new User(id, username, password, token, coins, elo, wins, losses, maxHP);
+            }
+            return null;
         }
     }
 }

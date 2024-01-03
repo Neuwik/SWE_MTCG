@@ -7,11 +7,45 @@ using MonsterTradingCardsGame.Model;
 
 namespace MonsterTradingCardsGame.Useless
 {
+    public enum EPackageType { STARTER = 0, GENERIC = 1, MONSTER = 2, SPELL = 3}
     public static class Package
     {
-        const int PACKAGE_SIZE = 5;
-        const int COST = 5;
+        const int PACKAGE_SIZE = 4;
+        public const int COST = 5;
         private static Random random = new Random();
+
+        public static List<Card> GetPackage(int packageTypeIndex = 1)
+        {
+            Array enumValues = Enum.GetValues(typeof(EPackageType));
+            if (packageTypeIndex >= enumValues.Length || packageTypeIndex < 0)
+            {
+                packageTypeIndex = 1;
+            }
+            EPackageType elementType = (EPackageType)enumValues.GetValue(packageTypeIndex);
+            return GetPackage(elementType);
+        }
+
+        public static List<Card> GetPackage(EPackageType packageType = EPackageType.GENERIC)
+        {
+            switch (packageType)
+            {
+                case EPackageType.STARTER:
+                    return GetStarterPackage();
+                    break;
+                case EPackageType.GENERIC:
+                    return GetGenericPackage();
+                    break;
+                case EPackageType.MONSTER:
+                    return GetMonsterPackage();
+                    break;
+                case EPackageType.SPELL:
+                    return GetSpellPackage();
+                    break;
+                default:
+                    return GetGenericPackage();
+                    break;
+            }
+        }
 
         public static List<Card> GetStarterPackage()
         {
