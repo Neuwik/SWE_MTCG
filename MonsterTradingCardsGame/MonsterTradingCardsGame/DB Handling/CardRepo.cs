@@ -66,11 +66,11 @@ namespace MonsterTradingCardsGame
                 if (card is Monster monster)
                 {
                     command.AddParameter("MaxHP", monster.MaxHP);
-                    command.AddParameter("MaxUses", DBNull.Value);
+                    command.AddParameter("MaxUses", 0);
                 }
                 else if (card is Spell spell)
                 {
-                    command.AddParameter("MaxHP", DBNull.Value);
+                    command.AddParameter("MaxHP", 0);
                     command.AddParameter("MaxUses", spell.MaxUses);
                 }
                 else
@@ -155,7 +155,7 @@ namespace MonsterTradingCardsGame
             return cards;
         }
 
-        public IEnumerable<Card> GetCardsOfUser(int userID)
+        public List<Card> GetCardsOfUser(int userID)
         {
             List<Card> cards = new List<Card>();
 
@@ -177,7 +177,7 @@ namespace MonsterTradingCardsGame
             return cards;
         }
 
-        public IEnumerable<Card> GetDeckOfUser(int userID)
+        public List<Card> GetDeckOfUser(int userID)
         {
             List<Card> cards = new List<Card>();
 

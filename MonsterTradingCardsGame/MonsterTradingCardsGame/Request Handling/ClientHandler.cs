@@ -282,6 +282,23 @@ namespace MonsterTradingCardsGame
             SendResponse(response);
         }
 
+        private void SendResponseJSON(string json, string responseCode = "200 OK")
+        {
+            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: application/json -d \r\n\r\n {json}\r\n";
+            SendResponse(response);
+        }
+
+        private void SendResponseJSONArray(string[] jsonArray, string responseCode = "200 OK")
+        {
+            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: application/json -d \r\n\r\n[";
+            foreach (string json in jsonArray)
+            {
+                response += $"{json},";
+            }
+            response = response.Remove(response.Length - 1, 1) + "]\r\n";
+            SendResponse(response);
+        }
+
         private void SendResponseExcetion(HttpResponseExcetion responseExcetion)
         {
             string response = $"HTTP/1.1 {responseExcetion.ResponseCode}\r\nContent-Type: text/plain\r\n\r\n{responseExcetion.Message}\r\n";
@@ -382,27 +399,11 @@ namespace MonsterTradingCardsGame
 
         private void HandleGetCards(Dictionary<string, string> requestParams)
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleGetCards";
-            SendResponse(response);
-        }
+            if (!requestParams.ContainsKey("Token"))
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
 
-        private void HandleGetDeck(Dictionary<string, string> requestParams)
-        {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleGetDeck";
-            SendResponse(response);
-        }
-
-        private void HandleConfigureDeck(Dictionary<string, string> requestParams)
-        {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleConfigureDeck";
-            SendResponse(response);
-        }
-
-        private void HandleAcquirePackages(Dictionary<string, string> requestParams)
-        {
             string token = requestParams["Token"];
 
             if (token == null)
@@ -414,12 +415,96 @@ namespace MonsterTradingCardsGame
                 throw new NotLoggedInException("Not Logged In");
             }
 
-            //TODO get User by Tocken -> if user = null
             User user = UserRepo.Instance.GetByToken(token);
             if (user == null)
             {
-                throw new InputNotAllowedException("User does not Exists");
+                throw new NothingFoundException("User does not Exists");
             }
+
+            List<Card> cards = CardRepo.Instance.GetCardsOfUser(user.ID);
+            if (cards == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            string[] jsonArray = new string[cards.Count];
+            for (int i = 0; i < jsonArray.Length; i++)
+            {
+                jsonArray[i] = JsonSerializer.Serialize(cards[i]);
+            }
+            SendResponseJSONArray(jsonArray);
+        }
+
+        private void HandleGetDeck(Dictionary<string, string> requestParams)
+        {
+            if(!requestParams.ContainsKey("Token"))
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+
+            string token = requestParams["Token"];
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            {
+                throw new NotLoggedInException("Not Logged In");
+            }
+
+            User user = UserRepo.Instance.GetByToken(token);
+            if (user == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            List<Card> cards = CardRepo.Instance.GetDeckOfUser(user.ID);
+            if (cards == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            string[] jsonArray = new string[cards.Count];
+            for (int i = 0; i < jsonArray.Length; i++)
+            {
+                jsonArray[i] = JsonSerializer.Serialize(cards[i]);
+            }
+            SendResponseJSONArray(jsonArray);
+        }
+
+        private void HandleConfigureDeck(Dictionary<string, string> requestParams)
+        {
+            // Verarbeite die GET-Anfrage und erstelle die Antwort
+            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleConfigureDeck";
+            SendResponse(response);
+        }
+
+        private void HandleAcquirePackages(Dictionary<string, string> requestParams)
+        {
+            if (!requestParams.ContainsKey("Token"))
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+
+            string token = requestParams["Token"];
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            {
+                throw new NotLoggedInException("Not Logged In");
+            }
+
+            User user = UserRepo.Instance.GetByToken(token);
+            if (user == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            user = new User(user, CardRepo.Instance.GetCardsOfUser(user.ID));
 
             //TODO Packet type at requestParams["0"]
             List<Card> cards = user.BuyPackage();

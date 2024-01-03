@@ -16,7 +16,7 @@ namespace MonsterTradingCardsGame.Model
 
         public readonly int ID;
         public int DMG { get; init; } = 1;
-        public bool InDeck { get; set; }
+        public bool InDeck { get; set; } = false;
         public int UserID { get; private set; }
 
         public string Name { get; protected set; }
@@ -39,7 +39,6 @@ namespace MonsterTradingCardsGame.Model
             Name = name;
             DMG = dmg;
             ElementType = elementType;
-            InDeck = false;
             UserID = userID;
         }
 

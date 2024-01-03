@@ -58,6 +58,64 @@ namespace MonsterTradingCardsGame.Model
             Deck = new Card[DECK_SIZE];
         }
 
+        public User(int id, string username, string password, string token, int coins, int elo, int wins, int losses, int maxHP, List<Card> cards)
+        {
+            ID = id;
+            Coins = coins;
+            Elo = elo;
+            Wins = wins;
+            Losses = losses;
+            MaxHP = maxHP;
+            HP = MaxHP;
+            Username = username;
+            Token = token;
+            Password = password;
+            Cards = cards;
+            Deck = new Card[DECK_SIZE];
+            ChangeDeck(Cards);
+        }
+
+        public User(int id, string username, string password, string token, int coins, int elo, int wins, int losses, int maxHP, List<Card> cards, List<Card> deck)
+        {
+            ID = id;
+            Coins = coins;
+            Elo = elo;
+            Wins = wins;
+            Losses = losses;
+            MaxHP = maxHP;
+            HP = MaxHP;
+            Username = username;
+            Token = token;
+            Password = password;
+            Cards = cards;
+            Deck = new Card[DECK_SIZE];
+            ChangeDeck(deck);
+        }
+
+        public User(User user, List<Card> cards, List<Card> deck = null)
+        {
+            ID = user.ID;
+            Coins = user.Coins;
+            Elo = user.Elo;
+            Wins = user.Wins;
+            Losses = user.Losses;
+            MaxHP = user.MaxHP;
+            HP = MaxHP;
+            Username = user.Username;
+            Token = user.Token;
+            Password = user.Password;
+            Cards = cards;
+            Deck = new Card[DECK_SIZE];
+            if (deck == null)
+            {
+                ChangeDeck(cards);
+            }
+            else
+            {
+                ChangeDeck(deck);
+            }
+        }
+
         public Card TradeCard(Card card)
         {
             throw new NotImplementedException();

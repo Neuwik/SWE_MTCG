@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace MonsterTradingCardsGame.Request_Handling
 {
+    //https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
     public abstract class HttpResponseExcetion : Exception
     {
         public string ResponseCode { get; init; }
