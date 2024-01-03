@@ -8,13 +8,19 @@ namespace MonsterTradingCardsGame.Model
 {
     public class Spell : Card
     {
-        public int MaxUses { get; init; }
+        public int MaxUses { get; init; } = 1;
         public int Uses { get; protected set; }
 
 
         public Spell() : base()
         {
-            //Random Stats
+            Uses = MaxUses;
+        }
+
+        public Spell(int dmg, EElementType elementType, int maxUses) : base(dmg, elementType)
+        {
+            MaxUses = maxUses;
+            Uses = MaxUses;
         }
 
         public Spell(string name, int dmg, EElementType elementType, int maxUses, int userID) : base(name, dmg, elementType, userID)
@@ -44,6 +50,11 @@ namespace MonsterTradingCardsGame.Model
         public override void ResetStats()
         {
             Uses = MaxUses;
+        }
+
+        public override int CalculateStrength()
+        {
+            return MaxUses * DMG;
         }
     }
 }

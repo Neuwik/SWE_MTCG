@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using MonsterTradingCardsGame.Model;
+using MonsterTradingCardsGame.Useless;
 
 namespace MonsterTradingCardsGame
 {
@@ -7,6 +8,18 @@ namespace MonsterTradingCardsGame
     {
         static void Main(string[] args)
         {
+            List<Card> cards = Package.GetStarterPackage();
+            cards.ForEach(x => { Console.WriteLine(x.Name); });
+
+            cards = Package.GetGenericPackage();
+            cards.ForEach(x => { Console.WriteLine(x.Name); });
+
+            cards = Package.GetMonsterPackage();
+            cards.ForEach(x => { Console.WriteLine(x.Name); });
+
+            cards = Package.GetSpellPackage();
+            cards.ForEach(x => { Console.WriteLine(x.Name); });
+
             ResetDB();
             StartServer();
             /*try

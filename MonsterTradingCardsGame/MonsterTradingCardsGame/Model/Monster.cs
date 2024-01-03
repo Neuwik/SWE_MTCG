@@ -9,11 +9,17 @@ namespace MonsterTradingCardsGame.Model
     public class Monster : Card, IHealth
     {
         public int HP { get; set; }
-        public int MaxHP { get; init; }
+        public int MaxHP { get; init; } = 1;
 
         public Monster() : base()
         {
-            //Random Stats
+            HP = MaxHP;
+        }
+
+        public Monster(int dmg, EElementType elementType, int maxHP) : base(dmg, elementType)
+        {
+            MaxHP = maxHP;
+            HP = MaxHP;
         }
 
         public Monster(string name, int dmg, EElementType elementType, int maxHP, int userID) : base(name, dmg, elementType, userID)
@@ -64,6 +70,11 @@ namespace MonsterTradingCardsGame.Model
         public override void ResetStats()
         {
             HP = MaxHP;
+        }
+
+        public override int CalculateStrength()
+        {
+            return MaxHP + DMG;
         }
     }
 }

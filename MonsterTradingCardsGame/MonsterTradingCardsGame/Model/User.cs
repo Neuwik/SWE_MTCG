@@ -24,7 +24,7 @@ namespace MonsterTradingCardsGame.Model
         public Card[] Deck { get; private set; }
 
         public int HP { get; set; }
-        public int MaxHP { get; init; } = 10;
+        public int MaxHP { get; init; } = 20;
 
         public User(string username, string password)
         {

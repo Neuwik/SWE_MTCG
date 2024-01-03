@@ -11,17 +11,26 @@ namespace MonsterTradingCardsGame.Model
 
     public abstract class Card
     {
+        protected static List<string> Names = new List<string>() { "Pawn", "Rook", "Kight", "Bishop", "Queen", "King" };
+        public static readonly int MAXSTRENGTH = Names.Count * 10;
+
         public readonly int ID;
-        public readonly int DMG;
+        public int DMG { get; init; } = 1;
         public bool InDeck { get; set; }
         public int UserID { get; private set; }
 
-        public string Name { get; private set; }
-        public EElementType ElementType { get; private set; }
+        public string Name { get; protected set; }
+        public EElementType ElementType { get; protected set; } = EElementType.NORMAL;
 
         public Card()
         {
-            //Random Stats
+            Name = GenerateCardName();
+        }
+        public Card(int dmg, EElementType elementType)
+        {
+            DMG = dmg;
+            ElementType = elementType;
+            Name = GenerateCardName();
         }
 
         public Card(string name, int dmg, EElementType elementType, int userID)
@@ -60,6 +69,18 @@ namespace MonsterTradingCardsGame.Model
             ResetStats();
         }
 
+        protected string GenerateCardName()
+        {
+            int i = CalculateStrength() / Names.Count;
+            if (i >= Names.Count)
+            {
+                i = Names.Count - 1;
+            }
+            return ElementType.ToString() + " " + Names[i] + " " + this.GetType().Name;
+        }
+
         public abstract void ResetStats();
+
+        public abstract int CalculateStrength();
     }
 }
