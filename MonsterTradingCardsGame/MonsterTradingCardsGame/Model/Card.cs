@@ -14,7 +14,7 @@ namespace MonsterTradingCardsGame.Model
         protected static List<string> Names = new List<string>() { "Pawn", "Rook", "Kight", "Bishop", "Queen", "King" };
         public static readonly int MAXSTRENGTH = Names.Count * 10;
 
-        public readonly int ID;
+        public int ID { get; init; }
         public int DMG { get; init; } = 1;
         public bool InDeck { get; set; } = false;
         public int UserID { get; private set; }

@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MonsterTradingCardsGame.Model;
 
-namespace MonsterTradingCardsGame.Useless
+namespace MonsterTradingCardsGame.Model
 {
-    public enum EPackageType { STARTER = 0, GENERIC = 1, MONSTER = 2, SPELL = 3}
+    public enum EPackageType { STARTER = 0, GENERIC = 1, MONSTER = 2, SPELL = 3 }
     public static class Package
     {
         const int PACKAGE_SIZE = 4;
@@ -105,12 +104,12 @@ namespace MonsterTradingCardsGame.Useless
         private static Monster GetRandomMonster()
         {
             Monster monster;
-            
+
             Array enumValues = Enum.GetValues(typeof(EElementType));
             int randomIndex = random.Next(enumValues.Length);
             EElementType elementType = (EElementType)enumValues.GetValue(randomIndex);
 
-            do 
+            do
             {
                 int dmg = random.Next(Card.MAXSTRENGTH) + 1;
                 int maxHP = random.Next(Card.MAXSTRENGTH) + 1;

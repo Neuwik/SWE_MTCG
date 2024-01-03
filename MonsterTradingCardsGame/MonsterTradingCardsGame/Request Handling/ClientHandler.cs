@@ -1,6 +1,5 @@
 ﻿using MonsterTradingCardsGame.Model;
 using MonsterTradingCardsGame.Request_Handling;
-using MonsterTradingCardsGame.Useless;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,12 +9,14 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MonsterTradingCardsGame
 {
     internal class ClientHandler
     {
+        private static readonly string TOKENKEY = "Token";
         private Socket client;
         private List<string> requestHistory;
         private const int bufferSize = 1024;
@@ -187,7 +188,7 @@ namespace MonsterTradingCardsGame
                 else if (header.StartsWith("Authorization:"))
                 {
                     authorizationHeader = header.Replace("Authorization: Bearer", "").Trim();
-                    requestParams.Add("Token", authorizationHeader);
+                    requestParams.Add(TOKENKEY, authorizationHeader);
                 }
             }
 
@@ -370,7 +371,7 @@ namespace MonsterTradingCardsGame
 
             if (username == null || password == null)
             {
-                throw new WrongParametersException("Login Failed");
+                throw new WrongParametersException("Wrong Parameters");
             }
 
             string token = UserRepo.Instance.GetTokenByUsernamePassword(username, password);
@@ -399,12 +400,12 @@ namespace MonsterTradingCardsGame
 
         private void HandleGetCards(Dictionary<string, string> requestParams)
         {
-            if (!requestParams.ContainsKey("Token"))
+            if (!requestParams.ContainsKey(TOKENKEY))
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
 
-            string token = requestParams["Token"];
+            string token = requestParams[TOKENKEY];
 
             if (token == null)
             {
@@ -430,19 +431,30 @@ namespace MonsterTradingCardsGame
             string[] jsonArray = new string[cards.Count];
             for (int i = 0; i < jsonArray.Length; i++)
             {
-                jsonArray[i] = JsonSerializer.Serialize(cards[i]);
+                if(cards[i] is Monster)
+                {
+                    jsonArray[i] = JsonSerializer.Serialize(cards[i] as Monster);
+                }
+                else if (cards[i] is Spell)
+                {
+                    jsonArray[i] = JsonSerializer.Serialize(cards[i] as Spell);
+                }
+                else
+                {
+                    jsonArray[i] = JsonSerializer.Serialize(cards[i]);
+                }
             }
             SendResponseJSONArray(jsonArray);
         }
 
         private void HandleGetDeck(Dictionary<string, string> requestParams)
         {
-            if(!requestParams.ContainsKey("Token"))
+            if(!requestParams.ContainsKey(TOKENKEY))
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
 
-            string token = requestParams["Token"];
+            string token = requestParams[TOKENKEY];
 
             if (token == null)
             {
@@ -475,19 +487,89 @@ namespace MonsterTradingCardsGame
 
         private void HandleConfigureDeck(Dictionary<string, string> requestParams)
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleConfigureDeck";
-            SendResponse(response);
-        }
-
-        private void HandleAcquirePackages(Dictionary<string, string> requestParams)
-        {
-            if (!requestParams.ContainsKey("Token"))
+            if (!requestParams.ContainsKey(TOKENKEY))
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
 
-            string token = requestParams["Token"];
+            string token = requestParams[TOKENKEY];
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            {
+                throw new NotLoggedInException("Not Logged In");
+            }
+
+            if(requestParams.Count != 5)
+            {
+                throw new WrongParametersException("Wrong Parameters");
+            }
+
+            List<Card> newDeck = new List<Card>();
+            foreach (KeyValuePair<string, string> pair in requestParams)
+            {
+                if (pair.Key != TOKENKEY)
+                {
+                    int id;
+                    try
+                    {
+                        id = Convert.ToInt32(pair.Value);
+                    }
+                    catch(Exception e)
+                    {
+                        throw new WrongParametersException("Wrong Parameters");
+                    }
+                    newDeck.Add(CardRepo.Instance.GetByID(id));
+                }
+            }
+
+            User user = UserRepo.Instance.GetByToken(token);
+            if (user == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            List<Card> cards = CardRepo.Instance.GetCardsOfUser(user.ID);
+            if (cards == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            List<Card> deck = CardRepo.Instance.GetDeckOfUser(user.ID);
+            if (deck == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            user = new User(user, cards, deck);
+
+            bool allWorked = user.ChangeDeck(newDeck);
+
+            foreach (Card card in user.Cards)
+            {
+                CardRepo.Instance.Update(card);
+            }
+
+            if(!allWorked)
+            {
+                throw new InputNotAllowedException("Request worked partly");
+            }
+
+            string message = user.Username + " has changed Deck.";
+            SendResponseMessage(message);
+        }
+
+        private void HandleAcquirePackages(Dictionary<string, string> requestParams)
+        {
+            if (!requestParams.ContainsKey(TOKENKEY))
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+
+            string token = requestParams[TOKENKEY];
 
             if (token == null)
             {

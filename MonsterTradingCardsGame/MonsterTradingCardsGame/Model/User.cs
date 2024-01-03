@@ -1,5 +1,4 @@
 ﻿using MonsterTradingCardsGame.Request_Handling;
-using MonsterTradingCardsGame.Useless;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +15,7 @@ namespace MonsterTradingCardsGame.Model
         //Should not be safed
         public readonly string Password;
 
-        public readonly int ID;
+        public int ID { get; init; }
         public string Username { get; private set; }
         public string Token { get; private set; }
         public int Coins { get; private set; } = 20;
@@ -166,6 +165,12 @@ namespace MonsterTradingCardsGame.Model
                 return false;
             }
 
+            // Swap Cards in Deck instead
+            if (card.InDeck)
+            {
+                return SwapCardPlaceInDeck(card, index);
+            }
+
             // Fill Empty Slots first
             if (DECK_SIZE >= Cards.Count)
             {
@@ -194,16 +199,61 @@ namespace MonsterTradingCardsGame.Model
             return true;
         }
 
-        public void ChangeDeck(List<Card> newDeck)
+        public bool SwapCardPlaceInDeck(Card card, int newIndex)
         {
+            if(!card.InDeck)
+            {
+                return false;
+            }
+
+            if(newIndex >= DECK_SIZE)
+            {
+                return false;
+            }
+
+            if(Deck[newIndex] != null)
+            {
+                if(Deck[newIndex].ID == card.ID)
+                {
+                    return false;
+                }
+                int currentIndex = -1;
+                for (int i = 0; i < DECK_SIZE; i++)
+                {
+                    if (Deck[i] != null && Deck[i].ID == card.ID)
+                    {
+                        currentIndex = i;
+                        break;
+                    }
+                }
+                if (currentIndex < 0)
+                {
+                    return false;
+                }
+                Deck[currentIndex] = Deck[newIndex];
+                Deck[newIndex] = card;
+            }
+            else
+            {
+                Deck[newIndex] = card;
+            }
+
+            return true;
+        }
+
+        public bool ChangeDeck(List<Card> newDeck)
+        {
+            bool allWorked = true;
             for (int i = 0; i < newDeck.Count && i < DECK_SIZE; i++)
             {
                 if (!AddCardToDeck(newDeck[i]))
                 {
+                    allWorked = false;
                     newDeck.RemoveAt(i);
                     i--;
                 }
             }
+            return allWorked;
         }
 
         public List<Card> BuyPackage(EPackageType packageType = EPackageType.GENERIC)

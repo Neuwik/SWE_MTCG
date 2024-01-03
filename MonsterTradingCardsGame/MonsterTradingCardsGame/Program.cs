@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using MonsterTradingCardsGame.Model;
-using MonsterTradingCardsGame.Useless;
 
 namespace MonsterTradingCardsGame
 {
@@ -8,38 +7,8 @@ namespace MonsterTradingCardsGame
     {
         static void Main(string[] args)
         {
-            List<Card> cards = Package.GetStarterPackage();
-            cards.ForEach(x => { Console.WriteLine(x.Name); });
-
-            cards = Package.GetGenericPackage();
-            cards.ForEach(x => { Console.WriteLine(x.Name); });
-
-            cards = Package.GetMonsterPackage();
-            cards.ForEach(x => { Console.WriteLine(x.Name); });
-
-            cards = Package.GetSpellPackage();
-            cards.ForEach(x => { Console.WriteLine(x.Name); });
-
             ResetDB();
             StartServer();
-            /*try
-            {
-                Thread serverThread = new Thread(StartServer);
-                serverThread.Start();
-                //Thread.Sleep(1000);
-                DataHandler.Instance.SendGetRequest();
-
-                //CardRepo.Instance.DropCardsTable();
-                CardRepo.Instance.Add(new Monster("Water Monster", 1, EElementType.WATER));
-                foreach (Card c in DataHandler.Instance.cards)
-                {
-                    Console.WriteLine(c.ID + " - " + c.Name);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }*/
         }
 
         static void StartServer()
@@ -66,8 +35,20 @@ namespace MonsterTradingCardsGame
             UserRepo.Instance.DropUsersTable();
         }
 
-        static void TestCardCreation()
+        /*static void TestCardCreation()
         {
+            List<Card> cards = Package.GetStarterPackage();
+            cards.ForEach(x => { Console.WriteLine(x.Name); });
+
+            cards = Package.GetGenericPackage();
+            cards.ForEach(x => { Console.WriteLine(x.Name); });
+
+            cards = Package.GetMonsterPackage();
+            cards.ForEach(x => { Console.WriteLine(x.Name); });
+
+            cards = Package.GetSpellPackage();
+            cards.ForEach(x => { Console.WriteLine(x.Name); });
+
             Card waterMonster = new Monster("Water Monster", 1, EElementType.WATER, 5, 1);
             Card earthMonster = new Monster("Earth Monster", 3, EElementType.EARTH, 5, 1);
             Card fireMonster = new Monster("Fire Monster", 5, EElementType.FIRE, 5, 1);
@@ -92,6 +73,6 @@ namespace MonsterTradingCardsGame
             }
 
             Console.WriteLine($"User 2 has {user2.HP}/{user2.MaxHP} HP");
-        }
+        }*/
     }
 }
