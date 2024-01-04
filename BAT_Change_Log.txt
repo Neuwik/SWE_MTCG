@@ -1,4 +1,8 @@
+ID -> intager
 Name -> Username
 3,6 -> useless because card packs are random and not created
 5 should fail -> no limeted amount of card packs
 7 -> less money because more spent on 5
+14 -> username in path after change
+14 -> added calls for admin access
+14 -> added should fail calls for username exists

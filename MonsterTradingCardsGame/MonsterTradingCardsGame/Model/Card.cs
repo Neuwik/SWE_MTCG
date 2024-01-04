@@ -12,7 +12,7 @@ namespace MonsterTradingCardsGame.Model
     public abstract class Card
     {
         protected static List<string> Names = new List<string>() { "Pawn", "Rook", "Kight", "Bishop", "Queen", "King" };
-        public static readonly int MAXSTRENGTH = Names.Count * 10;
+        public static readonly int MAXSTRENGTH = Names.Count * 3;
 
         public int ID { get; init; } = -1;
         public int DMG { get; init; } = 1;
@@ -71,7 +71,7 @@ namespace MonsterTradingCardsGame.Model
 
         protected string GenerateCardName()
         {
-            int i = CalculateStrength() / Names.Count;
+            int i = CalculateStrength() / (MAXSTRENGTH / Names.Count);
             if (i >= Names.Count)
             {
                 i = Names.Count - 1;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace MonsterTradingCardsGame.Model
@@ -14,18 +15,28 @@ namespace MonsterTradingCardsGame.Model
         const int DECK_SIZE = 4;
 
         //Should not be safed
+        [JsonIgnore]
         public readonly string Password;
+        [JsonIgnore]
+        public readonly bool IsAdmin = false;
 
         public int ID { get; init; } = -1;
         public string Username { get; private set; }
         public string Token { get; private set; }
+        public string Bio { get; private set; } = "Hey, I am playing MTCG!";
+        public string Image { get; private set; } = "°_°";
         public int Coins { get; private set; } = 20;
         public int Elo { get; private set; } = 200;
         public int Wins { get; private set; } = 0;
+        public int Draws { get; private set; } = 0;
         public int Losses { get; private set; } = 0;
+
+        [JsonIgnore]
         public List<Card> Cards { get; private set; }
+        [JsonIgnore]
         public Card[] Deck { get; private set; }
 
+        [JsonIgnore]
         public int HP { get; set; }
         public int MaxHP { get; init; } = 20;
 
@@ -42,36 +53,29 @@ namespace MonsterTradingCardsGame.Model
             Deck = new Card[DECK_SIZE];
         }
 
-        public User(int id, string username, string password, string token, int coins, int elo, int wins, int losses, int maxHP)
+        public User(int id, string username, string password, string token, bool isAdmin, string bio, string image, int coins, int elo, int wins, int draws, int losses, int maxHP) : this(username, password)
         {
             ID = id;
             Coins = coins;
             Elo = elo;
             Wins = wins;
+            Draws = draws;
             Losses = losses;
             MaxHP = maxHP;
             HP = MaxHP;
             Username = username;
             Token = token;
+            IsAdmin = isAdmin;
+            Bio = bio;
+            Image = image;
             Password = password;
             Cards = new List<Card>();
             Deck = new Card[DECK_SIZE];
         }
 
-        public User(int id, string username, string password, string token, int coins, int elo, int wins, int losses, int maxHP, List<Card> cards)
+        public User(int id, string username, string password, string token, bool isAdmin, string bio, string image, int coins, int elo, int wins, int draws, int losses, int maxHP, List<Card> cards) : this(id, username, password, token, isAdmin, bio, image, coins, elo, wins, draws, losses, maxHP)
         {
-            ID = id;
-            Coins = coins;
-            Elo = elo;
-            Wins = wins;
-            Losses = losses;
-            MaxHP = maxHP;
-            HP = MaxHP;
-            Username = username;
-            Token = token;
-            Password = password;
             Cards = cards;
-            Deck = new Card[DECK_SIZE];
             ChangeDeck(cards.Where(c => c.InDeck).ToList());
         }
 
@@ -272,6 +276,19 @@ namespace MonsterTradingCardsGame.Model
         public void LooseHP(int dmg, EElementType elementType)
         {
             HP -= dmg;
+        }
+
+        public void ChangeUserData(string username, string bio, string image)
+        {
+            Username = username ?? Username;
+            Bio = bio ?? Bio;
+            Image = image ?? Image;
+        }
+
+        public string GetStatsAsJsonString()
+        {
+            string json = "{" + $"\"Username\":\"{Username}\",\"Elo\":\"{Elo}\",\"Wins\":\"{Wins}\",\"Draws\":\"{Draws}\",\"Losses\":\"{Losses}\"" + "}";
+            return json;
         }
     }
 }

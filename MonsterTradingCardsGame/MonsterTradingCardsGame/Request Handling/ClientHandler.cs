@@ -26,7 +26,7 @@ namespace MonsterTradingCardsGame
         List<string> requestPath;
         Dictionary<string, string> requestGetParams;
         Dictionary<string, string> requestHeaders;
-        Dictionary<string, string> requestData;
+        List<string> requestData;
 
         public ClientHandler(Socket client)
         {
@@ -265,9 +265,9 @@ namespace MonsterTradingCardsGame
             return requestHeaders;
         }
 
-        private Dictionary<string, string> SplitRequestData(string request, Dictionary<string, string> requestHeaders)
+        private List<string> SplitRequestData(string request, Dictionary<string, string> requestHeaders)
         {
-            Dictionary<string, string> requestData = new Dictionary<string, string>();
+            List<string> requestData = new List<string>();
 
             // Check if Content-Type is application/json
             if (requestHeaders.ContainsKey("Content-Type") && !string.IsNullOrEmpty(requestHeaders["Content-Type"]) && requestHeaders["Content-Type"].ToLower().Contains("application/json"))
@@ -287,7 +287,7 @@ namespace MonsterTradingCardsGame
                             string[] splitData = data.Split("},");
                             for (int i = 0; i < splitData.Length; i++)
                             {
-                                requestData.Add("JSON" + i.ToString(), "{" + splitData[i].Trim('{', '}', ' ') + "}");
+                                requestData.Add("{" + splitData[i].Trim('{', '}', ' ') + "}");
                             }
                         }
                         else
@@ -295,22 +295,14 @@ namespace MonsterTradingCardsGame
                             string[] splitData = data.Split(',');
                             for (int i = 0; i < splitData.Length; i++)
                             {
-                                requestData.Add(i.ToString(), splitData[i].Trim('\"', ' '));
+                                requestData.Add(splitData[i].Trim('\"', ' '));
                             }
                         }
                     }
                     else
                     {
-
-                        if (data.StartsWith("{") && data.EndsWith("}"))
-                        {
-                            requestData.Add("JSON0", data);
-                        }
-                        else
-                        {
-                            if(data != "")
-                                requestData.Add("0", data);
-                        }
+                        if(data != "")
+                            requestData.Add(data);
                     }
                 }
             }
@@ -341,7 +333,7 @@ namespace MonsterTradingCardsGame
 
         private void SendResponseMessage(string message, string responseCode = "200 OK")
         {
-            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: text/plain\r\n\r\nMessage: {message}\r\n";
+            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: text/plain\r\n\r\n\"{message}\"\r\n";
             SendResponse(response);
         }
 
@@ -350,13 +342,13 @@ namespace MonsterTradingCardsGame
             string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: application/json -d \r\n\r\n[";
             foreach (string message in messageArray)
             {
-                response += $"\n{message},";
+                response += $"\"{message}\",";
             }
             if (messageArray.Length > 0)
             {
                 response = response.Remove(response.Length - 1, 1);
             }
-            response += "\n]\r\n";
+            response += "]\r\n";
             SendResponse(response);
         }
 
@@ -371,25 +363,25 @@ namespace MonsterTradingCardsGame
             string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: application/json -d \r\n\r\n[";
             foreach (string json in jsonArray)
             {
-                response += $"\n{json},";
+                response += $"{json},";
             }
             if (jsonArray.Length > 0)
             {
                 response = response.Remove(response.Length - 1, 1);
             }
-            response += "\n]\r\n";
+            response += "]\r\n";
             SendResponse(response);
         }
 
         private void SendResponseExcetion(HttpResponseExcetion responseExcetion)
         {
-            string response = $"HTTP/1.1 {responseExcetion.ResponseCode}\r\nContent-Type: text/plain\r\n\r\n{responseExcetion.Message}\r\n";
+            string response = $"HTTP/1.1 {responseExcetion.ResponseCode}\r\nContent-Type: text/plain\r\n\r\n\"{responseExcetion.Message}\"\r\n";
             SendResponse(response);
         }
 
         private void HandleUserRegistration()
         {
-            string jsonUserString = requestData.Where(pair => pair.Key.StartsWith("JSON")).FirstOrDefault().Value;
+            string jsonUserString = requestData.FirstOrDefault();
             JsonElement jsonUser = JsonDocument.Parse(jsonUserString).RootElement;
 
             string username = null;
@@ -434,7 +426,7 @@ namespace MonsterTradingCardsGame
 
         private void HandleLogin()
         {
-            string jsonUserString = requestData.Where(pair => pair.Key.StartsWith("JSON")).FirstOrDefault().Value;
+            string jsonUserString = requestData.FirstOrDefault();
             JsonElement jsonUser = JsonDocument.Parse(jsonUserString).RootElement;
 
             string username = null;
@@ -598,12 +590,12 @@ namespace MonsterTradingCardsGame
             }
 
             List<int> newDeckIDs = new List<int>();
-            foreach (KeyValuePair<string, string> pair in requestData)
+            foreach (string idString in requestData)
             {
                 int id;
                 try
                 {
-                    id = Convert.ToInt32(pair.Value);
+                    id = Convert.ToInt32(idString);
                 }
                 catch(Exception e)
                 {
@@ -695,23 +687,82 @@ namespace MonsterTradingCardsGame
 
         private void HandleGetUserData()
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleGetUserData";
-            SendResponse(response);
+            string token = GetTokenFromHeaders();
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            {
+                throw new NotLoggedInException("Not Logged In");
+            }
+
+            if (requestPath.Count < 2)
+            {
+                throw new BadRequestException("Incomplete Path");
+            }
+
+            string username = requestPath[1];
+
+            User user = UserRepo.Instance.GetByUsername(username, token);
+            if (user == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            SendResponseJSON(JsonSerializer.Serialize(user));
         }
 
         private void HandleGetStats()
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleGetStats";
-            SendResponse(response);
+            string token = GetTokenFromHeaders();
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            {
+                throw new NotLoggedInException("Not Logged In");
+            }
+
+            User user = UserRepo.Instance.GetByToken(token);
+            if (user == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            SendResponseJSON(user.GetStatsAsJsonString());
         }
 
         private void HandleGetScoreboard()
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleGetScoreboard";
-            SendResponse(response);
+            string token = GetTokenFromHeaders();
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            {
+                throw new NotLoggedInException("Not Logged In");
+            }
+
+            List<User> users = UserRepo.Instance.GetAll().ToList();
+            if (users == null)
+            {
+                throw new NothingFoundException("No Users found");
+            }
+
+            users.OrderByDescending(u => u.Elo);
+
+            string[] jsonArray = new string[users.Count];
+            for (int i = 0; i < jsonArray.Length; i++)
+            {
+                jsonArray[i] = users[i].GetStatsAsJsonString();
+            }
+            SendResponseJSONArray(jsonArray);
         }
 
         private void HandleGetTradingDeals()
@@ -723,9 +774,63 @@ namespace MonsterTradingCardsGame
 
         private void HandleEditUserData()
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleEditUserData";
-            SendResponse(response);
+            string token = GetTokenFromHeaders();
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            {
+                throw new NotLoggedInException("Not Logged In");
+            }
+
+            if (requestPath.Count < 2)
+            {
+                throw new BadRequestException("Incomplete Path");
+            }
+
+            string username = requestPath[1];
+
+            User user = UserRepo.Instance.GetByUsername(username, token);
+            if (user == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            string jsonUserString = requestData.FirstOrDefault();
+            JsonElement jsonUser = JsonDocument.Parse(jsonUserString).RootElement;
+
+            username = null;
+            string bio = null;
+            string image = null;
+
+            if (jsonUser.TryGetProperty("Username", out JsonElement usernameElement) && usernameElement.ValueKind != JsonValueKind.Null)
+            {
+                username = usernameElement.GetString();
+            }
+
+            if (jsonUser.TryGetProperty("Bio", out JsonElement bioElement) && bioElement.ValueKind != JsonValueKind.Null)
+            {
+                bio = bioElement.GetString();
+            }
+
+            if (jsonUser.TryGetProperty("Image", out JsonElement imageElement) && imageElement.ValueKind != JsonValueKind.Null)
+            {
+                image = imageElement.GetString();
+            }
+
+            if (UserRepo.Instance.UsernameExists(username))
+            {
+                throw new InputNotAllowedException("Username Already Exists");
+            }
+
+            user.ChangeUserData(username, bio, image);
+
+            UserRepo.Instance.Update(user);
+
+            string message = user.Username + " was changed";
+            SendResponseMessage(message);
         }
 
         private void HandleBattle()

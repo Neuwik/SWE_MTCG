@@ -208,26 +208,32 @@ curl -i -X GET http://localhost:10001/users/kienboec --header "Authorization: Be
 echo.
 curl -i -X GET http://localhost:10001/users/altenhof --header "Authorization: Bearer altenhof-mtcgToken"
 echo.
-curl -i -X PUT http://localhost:10001/users/kienboec --header "Content-Type: application/json" --header "Authorization: Bearer kienboec-mtcgToken" -d "{\"Username\": \"Kienboeck\",  \"Bio\": \"me playin...\", \"Image\": \":-)\"}"
+curl -i -X PUT http://localhost:10001/users/kienboec --header "Content-Type: application/json" --header "Authorization: Bearer kienboec-mtcgToken" -d "{\"Username\": \"Kienbock\",  \"Bio\": \"me playin...\", \"Image\": \":-)\"}"
 echo.
 curl -i -X PUT http://localhost:10001/users/altenhof --header "Content-Type: application/json" --header "Authorization: Bearer altenhof-mtcgToken" -d "{\"Username\": \"Altenhofer\", \"Bio\": \"me codin...\",  \"Image\": \":-D\"}"
 echo.
-curl -i -X GET http://localhost:10001/users/kienboec --header "Authorization: Bearer kienboec-mtcgToken"
+curl -i -X GET http://localhost:10001/users/Kienbock --header "Authorization: Bearer kienboec-mtcgToken"
 echo.
-curl -i -X GET http://localhost:10001/users/altenhof --header "Authorization: Bearer altenhof-mtcgToken"
+curl -i -X GET http://localhost:10001/users/Altenhofer --header "Authorization: Bearer altenhof-mtcgToken"
+echo.
+curl -i -X PUT http://localhost:10001/users/Kienbock --header "Content-Type: application/json" --header "Authorization: Bearer admin-mtcgToken" -d "{\"Username\": \"Kienboeck\",  \"Bio\": \"me playin...\", \"Image\": \":^)\"}"
+echo.
+curl -i -X GET http://localhost:10001/users/Kienboeck --header "Authorization: Bearer admin-mtcgToken"
 echo.
 echo.
 
 pause
 
 echo should fail:
-curl -i -X GET http://localhost:10001/users/altenhof --header "Authorization: Bearer kienboec-mtcgToken"
+curl -i -X GET http://localhost:10001/users/Altenhofer --header "Authorization: Bearer kienboec-mtcgToken"
 echo.
-curl -i -X GET http://localhost:10001/users/kienboec --header "Authorization: Bearer altenhof-mtcgToken"
+curl -i -X GET http://localhost:10001/users/Kienboeck --header "Authorization: Bearer altenhof-mtcgToken"
 echo.
-curl -i -X PUT http://localhost:10001/users/kienboec --header "Content-Type: application/json" --header "Authorization: Bearer altenhof-mtcgToken" -d "{\"Name\": \"Hoax\",  \"Bio\": \"me playin...\", \"Image\": \":-)\"}"
+curl -i -X PUT http://localhost:10001/users/Kienboeck --header "Content-Type: application/json" --header "Authorization: Bearer altenhof-mtcgToken" -d "{\"Username\": \"Hoax\", \"Bio\": \"me playin...\", \"Image\": \":-)\"}"
 echo.
-curl -i -X PUT http://localhost:10001/users/altenhof --header "Content-Type: application/json" --header "Authorization: Bearer kienboec-mtcgToken" -d "{\"Name\": \"Hoax\", \"Bio\": \"me codin...\",  \"Image\": \":-D\"}"
+curl -i -X PUT http://localhost:10001/users/Altenhofer --header "Content-Type: application/json" --header "Authorization: Bearer kienboec-mtcgToken" -d "{\"Username\": \"Hoax\", \"Bio\": \"me codin...\", \"Image\": \":-D\"}"
+echo.
+curl -i -X PUT http://localhost:10001/users/Altenhofer --header "Content-Type: application/json" --header "Authorization: Bearer altenhof-mtcgToken" -d "{\"Username\": \"admin\", \"Bio\": \"me codin...\", \"Image\": \":-D\"}"
 echo.
 curl -i -X GET http://localhost:10001/users/someGuy  --header "Authorization: Bearer kienboec-mtcgToken"
 echo.
