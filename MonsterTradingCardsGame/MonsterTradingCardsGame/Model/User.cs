@@ -290,5 +290,18 @@ namespace MonsterTradingCardsGame.Model
             string json = "{" + $"\"Username\":\"{Username}\",\"Elo\":\"{Elo}\",\"Wins\":\"{Wins}\",\"Draws\":\"{Draws}\",\"Losses\":\"{Losses}\"" + "}";
             return json;
         }
+
+        public void AddWin(int enemyElo)
+        {
+            Wins++;
+        }
+        public void AddLoss(int enemyElo)
+        {
+            Losses++;
+        }
+        public void AddDraw()
+        {
+            Draws++;
+        }
     }
 }

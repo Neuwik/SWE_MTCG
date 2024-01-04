@@ -327,19 +327,20 @@ namespace MonsterTradingCardsGame
 
         private void SendResponse(string response)
         {
+            response = "HTTP/1.1 " + response;
             byte[] responseBytes = Encoding.ASCII.GetBytes(response);
             client.Send(responseBytes);
         }
 
         private void SendResponseMessage(string message, string responseCode = "200 OK")
         {
-            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: text/plain\r\n\r\n\"{message}\"\r\n";
+            string response = $"{responseCode}\r\nContent-Type: text/plain\r\n\r\n\"{message}\"\r\n";
             SendResponse(response);
         }
 
         private void SendResponseMessageArray(string[] messageArray, string responseCode = "200 OK")
         {
-            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: application/json -d \r\n\r\n[";
+            string response = $"{responseCode}\r\nContent-Type: application/json -d \r\n\r\n[";
             foreach (string message in messageArray)
             {
                 response += $"\"{message}\",";
@@ -354,13 +355,13 @@ namespace MonsterTradingCardsGame
 
         private void SendResponseJSON(string json, string responseCode = "200 OK")
         {
-            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: application/json -d \r\n\r\n {json}\r\n";
+            string response = $"{responseCode}\r\nContent-Type: application/json -d \r\n\r\n {json}\r\n";
             SendResponse(response);
         }
 
         private void SendResponseJSONArray(string[] jsonArray, string responseCode = "200 OK")
         {
-            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: application/json -d \r\n\r\n[";
+            string response = $"{responseCode}\r\nContent-Type: application/json -d \r\n\r\n[";
             foreach (string json in jsonArray)
             {
                 response += $"{json},";
@@ -375,7 +376,7 @@ namespace MonsterTradingCardsGame
 
         private void SendResponseExcetion(HttpResponseExcetion responseExcetion)
         {
-            string response = $"HTTP/1.1 {responseExcetion.ResponseCode}\r\nContent-Type: text/plain\r\n\r\n\"{responseExcetion.Message}\"\r\n";
+            string response = $"{responseExcetion.ResponseCode}\r\nContent-Type: text/plain\r\n\r\n\"{responseExcetion.Message}\"\r\n";
             SendResponse(response);
         }
 
