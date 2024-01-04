@@ -5,9 +5,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Xml;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -16,10 +19,14 @@ namespace MonsterTradingCardsGame
 {
     internal class ClientHandler
     {
-        private static readonly string TOKENKEY = "Token";
         private Socket client;
         private List<string> requestHistory;
         private const int bufferSize = 1024;
+
+        List<string> requestPath;
+        Dictionary<string, string> requestGetParams;
+        Dictionary<string, string> requestHeaders;
+        Dictionary<string, string> requestData;
 
         public ClientHandler(Socket client)
         {
@@ -45,38 +52,44 @@ namespace MonsterTradingCardsGame
             try
             {
                 string request = ReadRequest();
-                Dictionary<string, string> requestParams = SplitRequestParams(request);
+                Console.WriteLine(request);
 
-                //Console.WriteLine(request);
-                foreach (var param in requestParams)
+                //string requestType = request.Split(" ")[0];
+                requestPath = SplitRequestPath(request);
+                requestGetParams = SplitRequestGetParams(request);
+                requestHeaders = SplitRequestHeaders(request);
+                requestData = SplitRequestData(request, requestHeaders);
+
+                if (requestPath.Count <= 0)
                 {
-                    Console.WriteLine($"\t{param.Key}\t->\t{param.Value}");
+                    throw new BadRequestException();
                 }
+
                 if (request.StartsWith("POST"))
                 {
                     if (request.StartsWith("POST /users"))
                     {
-                        HandleUserRegistration(requestParams);
+                        HandleUserRegistration();
                     }
                     else if (request.StartsWith("POST /sessions"))
                     {
-                        HandleLogin(requestParams);
+                        HandleLogin();
                     }
                     else if (request.StartsWith("POST /packages"))
                     {
-                        HandleCreatePackages(requestParams);
+                        HandleCreatePackages();
                     }
                     else if (request.StartsWith("POST /transactions/packages"))
                     {
-                        HandleAcquirePackages(requestParams);
+                        HandleAcquirePackages();
                     }
                     else if (request.StartsWith("POST /tradings"))
                     {
-                        HandleCreateTradingDeal(requestParams);
+                        HandleCreateTradingDeal();
                     }
                     else if (request.StartsWith("POST /battles"))
                     {
-                        HandleBattle(requestParams);
+                        HandleBattle();
                     }
                     // Add more conditions to differentiate between different POST endpoints
                     else
@@ -88,27 +101,27 @@ namespace MonsterTradingCardsGame
                 {
                     if (request.StartsWith("GET /cards"))
                     {
-                        HandleGetCards(requestParams);
+                        HandleGetCards();
                     }
                     else if (request.StartsWith("GET /deck"))
                     {
-                        HandleGetDeck(requestParams);
+                        HandleGetDeck();
                     }
                     else if (request.StartsWith("GET /users"))
                     {
-                        HandleGetUserData(requestParams);
+                        HandleGetUserData();
                     }
                     else if (request.StartsWith("GET /stats"))
                     {
-                        HandleGetStats(requestParams);
+                        HandleGetStats();
                     }
                     else if (request.StartsWith("GET /scoreboard"))
                     {
-                        HandleGetScoreboard(requestParams);
+                        HandleGetScoreboard();
                     }
                     else if (request.StartsWith("GET /tradings"))
                     {
-                        HandleGetTradingDeals(requestParams);
+                        HandleGetTradingDeals();
                     }
                     // Add more conditions to differentiate between different GET endpoints
                     else
@@ -120,11 +133,11 @@ namespace MonsterTradingCardsGame
                 {
                     if (request.StartsWith("PUT /deck"))
                     {
-                        HandleConfigureDeck(requestParams);
+                        HandleConfigureDeck();
                     }
                     else if (request.StartsWith("PUT /users"))
                     {
-                        HandleEditUserData(requestParams);
+                        HandleEditUserData();
                     }
                     // Add more conditions to differentiate between different PUT endpoints
                     else
@@ -136,7 +149,7 @@ namespace MonsterTradingCardsGame
                 {
                     if (request.StartsWith("DELETE /tradings"))
                     {
-                        HandleDeleteTrading(requestParams);
+                        HandleDeleteTrading();
                     }
                     // Add more conditions to differentiate between different DELETE endpoints
                     else
@@ -164,37 +177,100 @@ namespace MonsterTradingCardsGame
             }
             finally
             {
-                //Console.WriteLine("CLOSE");
                 client.Shutdown(SocketShutdown.Both);
                 client.Close();
             }
         }
 
-        private Dictionary<string, string> SplitRequestParams(string request)
+        private List<string> SplitRequestPath(string request)
         {
-            Dictionary<string, string> requestParams = new Dictionary<string, string>();
+            List<string> requestPath = new List<string>();
 
-            // Extract headers
-            var headers = request.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-            string contentType = "";
-            string authorizationHeader = "";
-
-            foreach (var header in headers)
+            string[] lines = request.Split('\n');
+            if (lines.Length > 0)
             {
-                if (header.StartsWith("Content-Type:"))
+                string[] splitRequest = lines[0].Split(" ");
+
+                if (splitRequest.Length >= 2)
                 {
-                    contentType = header.Replace("Content-Type:", "").Trim();
-                }
-                else if (header.StartsWith("Authorization:"))
-                {
-                    authorizationHeader = header.Replace("Authorization: Bearer", "").Trim();
-                    requestParams.Add(TOKENKEY, authorizationHeader);
+                    splitRequest = splitRequest[1].Split("HTTP");
+                    if (splitRequest.Length > 0)
+                    {
+                        splitRequest = splitRequest[0].Split("?");
+                        if (splitRequest.Length > 0)
+                        {
+                            string[] pathParts = splitRequest[0].Split("/");
+
+                            foreach (string pathPart in pathParts)
+                            {
+                                if (pathPart != "")
+                                {
+                                    requestPath.Add(pathPart);
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
+            return requestPath;
+        }
+
+        private Dictionary<string, string> SplitRequestGetParams(string request)
+        {
+            Dictionary<string, string> requestGetParams = new Dictionary<string, string>();
+
+            string[] lines = request.Split('\n');
+            if (lines.Length > 0)
+            {
+                string[] splitRequest = lines[0].Split("?");
+
+                if (splitRequest.Length == 2)
+                {
+                    splitRequest = splitRequest[1].Split("HTTP");
+                    if (splitRequest.Length > 0)
+                    {
+                        string[] getParamPairs = splitRequest[0].Split("&");
+                        foreach (string getParamPair in getParamPairs)
+                        {
+                            string[] pair = getParamPair.Split("=");
+                            if (pair.Length == 2)
+                            {
+                                requestGetParams.Add(pair[0].Trim(), pair[1].Trim());
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return requestGetParams;
+        }
+
+        private Dictionary<string, string> SplitRequestHeaders(string request)
+        {
+            Dictionary<string, string> requestHeaders = new Dictionary<string, string>();
+
+            // Extract headers
+            string[] headers = request.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string header in headers)
+            {
+                string[] headerPair = header.Split(":");
+                if (headerPair.Length >= 2)
+                {
+                    requestHeaders.Add(headerPair[0].Trim(), headerPair[1].Trim());
+                }
+            }
+
+            return requestHeaders;
+        }
+
+        private Dictionary<string, string> SplitRequestData(string request, Dictionary<string, string> requestHeaders)
+        {
+            Dictionary<string, string> requestData = new Dictionary<string, string>();
 
             // Check if Content-Type is application/json
-            if (!string.IsNullOrEmpty(contentType) && contentType.ToLower().Contains("application/json"))
+            if (requestHeaders.ContainsKey("Content-Type") && !string.IsNullOrEmpty(requestHeaders["Content-Type"]) && requestHeaders["Content-Type"].ToLower().Contains("application/json"))
             {
                 // Extract JSON data
                 int databodyStartIndex = request.IndexOf("\r\n\r\n"); // Find the start of the body
@@ -211,7 +287,7 @@ namespace MonsterTradingCardsGame
                             string[] splitData = data.Split("},");
                             for (int i = 0; i < splitData.Length; i++)
                             {
-                                requestParams.Add("JSON" + i.ToString(), "{" + splitData[i].Trim('{', '}', ' ') + "}");
+                                requestData.Add("JSON" + i.ToString(), "{" + splitData[i].Trim('{', '}', ' ') + "}");
                             }
                         }
                         else
@@ -219,7 +295,7 @@ namespace MonsterTradingCardsGame
                             string[] splitData = data.Split(',');
                             for (int i = 0; i < splitData.Length; i++)
                             {
-                                requestParams.Add(i.ToString(), splitData[i].Trim('\"', ' '));
+                                requestData.Add(i.ToString(), splitData[i].Trim('\"', ' '));
                             }
                         }
                     }
@@ -228,36 +304,33 @@ namespace MonsterTradingCardsGame
 
                         if (data.StartsWith("{") && data.EndsWith("}"))
                         {
-                            requestParams.Add("JSON0", data);
+                            requestData.Add("JSON0", data);
                         }
                         else
                         {
                             if(data != "")
-                                requestParams.Add("0", data);
+                                requestData.Add("0", data);
                         }
                     }
                 }
             }
 
-            return requestParams;
+            return requestData;
         }
 
-        private string[] ParseJsonArray(string jsonString)
+        private string GetTokenFromHeaders()
         {
-            // Assuming JSON array is represented as an array of strings
-            // For simplicity, a basic parsing approach is shown here.
-            // This might need further enhancement to handle edge cases.
-
-            // Remove the square brackets and split by comma to get individual elements
-            string[] elements = jsonString.Trim('[', ']').Split(',');
-
-            // Trim extra spaces and quotes from each element
-            for (int i = 0; i < elements.Length; i++)
+            //"Authorization: Bearer altenhof-mtcgToken"
+            string key = "Authorization";
+            if (requestHeaders.ContainsKey(key) && !string.IsNullOrEmpty(requestHeaders[key]))
             {
-                elements[i] = elements[i].Trim(' ', '"');
+                string[] splitToken = requestHeaders[key].Split(" ");
+                for (int i = splitToken.Length - 1; i >= 0; i--)
+                {
+                    return splitToken[i].Trim();
+                }
             }
-
-            return elements;
+            return null;
         }
 
         private void SendResponse(string response)
@@ -272,14 +345,18 @@ namespace MonsterTradingCardsGame
             SendResponse(response);
         }
 
-        private void SendResponseData(Dictionary<string,string> data, string responseCode = "200 OK")
+        private void SendResponseMessageArray(string[] messageArray, string responseCode = "200 OK")
         {
-            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: application/json -d \r\n\r\n{"{"}";
-            foreach (var item in data)
+            string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: application/json -d \r\n\r\n[";
+            foreach (string message in messageArray)
             {
-                response += $"{item.Key}:{item.Value},";
+                response += $"\n{message},";
             }
-            response = response.Remove(response.Length - 1, 1) + "}\r\n";
+            if (messageArray.Length > 0)
+            {
+                response = response.Remove(response.Length - 1, 1);
+            }
+            response += "\n]\r\n";
             SendResponse(response);
         }
 
@@ -294,9 +371,13 @@ namespace MonsterTradingCardsGame
             string response = $"HTTP/1.1 {responseCode}\r\nContent-Type: application/json -d \r\n\r\n[";
             foreach (string json in jsonArray)
             {
-                response += $"{json},";
+                response += $"\n{json},";
             }
-            response = response.Remove(response.Length - 1, 1) + "]\r\n";
+            if (jsonArray.Length > 0)
+            {
+                response = response.Remove(response.Length - 1, 1);
+            }
+            response += "\n]\r\n";
             SendResponse(response);
         }
 
@@ -306,9 +387,9 @@ namespace MonsterTradingCardsGame
             SendResponse(response);
         }
 
-        private void HandleUserRegistration(Dictionary<string, string> requestParams)
+        private void HandleUserRegistration()
         {
-            string jsonUserString = requestParams.Where(pair => pair.Key.StartsWith("JSON")).FirstOrDefault().Value;
+            string jsonUserString = requestData.Where(pair => pair.Key.StartsWith("JSON")).FirstOrDefault().Value;
             JsonElement jsonUser = JsonDocument.Parse(jsonUserString).RootElement;
 
             string username = null;
@@ -351,9 +432,9 @@ namespace MonsterTradingCardsGame
             SendResponseMessage(message, "201 Created");
         }
 
-        private void HandleLogin(Dictionary<string, string> requestParams)
+        private void HandleLogin()
         {
-            string jsonUserString = requestParams.Where(pair => pair.Key.StartsWith("JSON")).FirstOrDefault().Value;
+            string jsonUserString = requestData.Where(pair => pair.Key.StartsWith("JSON")).FirstOrDefault().Value;
             JsonElement jsonUser = JsonDocument.Parse(jsonUserString).RootElement;
 
             string username = null;
@@ -392,20 +473,15 @@ namespace MonsterTradingCardsGame
             SendResponseMessage(message);
         }
 
-        private void HandleCreatePackages(Dictionary<string, string> requestParams)
+        private void HandleCreatePackages()
         {
             string message = "Useless, Cardpacks are random";
             SendResponseMessage(message);
         }
 
-        private void HandleGetCards(Dictionary<string, string> requestParams)
+        private void HandleGetCards()
         {
-            if (!requestParams.ContainsKey(TOKENKEY))
-            {
-                throw new NotLoggedInException("Authorization Required (Token)");
-            }
-
-            string token = requestParams[TOKENKEY];
+            string token = GetTokenFromHeaders();
 
             if (token == null)
             {
@@ -447,14 +523,9 @@ namespace MonsterTradingCardsGame
             SendResponseJSONArray(jsonArray);
         }
 
-        private void HandleGetDeck(Dictionary<string, string> requestParams)
+        private void HandleGetDeck()
         {
-            if(!requestParams.ContainsKey(TOKENKEY))
-            {
-                throw new NotLoggedInException("Authorization Required (Token)");
-            }
-
-            string token = requestParams[TOKENKEY];
+            string token = GetTokenFromHeaders();
 
             if (token == null)
             {
@@ -477,22 +548,40 @@ namespace MonsterTradingCardsGame
                 throw new NothingFoundException("User does not Exists");
             }
 
-            string[] jsonArray = new string[cards.Count];
-            for (int i = 0; i < jsonArray.Length; i++)
+            if (requestGetParams.ContainsKey("format") && requestGetParams["format"] == "plain")
             {
-                jsonArray[i] = JsonSerializer.Serialize(cards[i]);
+                string[] messageArray = new string[cards.Count];
+                for (int i = 0; i < messageArray.Length; i++)
+                {
+                    messageArray[i] = cards[i].ToString();
+                }
+                SendResponseMessageArray(messageArray);
             }
-            SendResponseJSONArray(jsonArray);
+            else
+            {
+                string[] jsonArray = new string[cards.Count];
+                for (int i = 0; i < jsonArray.Length; i++)
+                {
+                    if (cards[i] is Monster)
+                    {
+                        jsonArray[i] = JsonSerializer.Serialize(cards[i] as Monster);
+                    }
+                    else if (cards[i] is Spell)
+                    {
+                        jsonArray[i] = JsonSerializer.Serialize(cards[i] as Spell);
+                    }
+                    else
+                    {
+                        jsonArray[i] = JsonSerializer.Serialize(cards[i]);
+                    }
+                }
+                SendResponseJSONArray(jsonArray);
+            }
         }
 
-        private void HandleConfigureDeck(Dictionary<string, string> requestParams)
+        private void HandleConfigureDeck()
         {
-            if (!requestParams.ContainsKey(TOKENKEY))
-            {
-                throw new NotLoggedInException("Authorization Required (Token)");
-            }
-
-            string token = requestParams[TOKENKEY];
+            string token = GetTokenFromHeaders();
 
             if (token == null)
             {
@@ -503,27 +592,24 @@ namespace MonsterTradingCardsGame
                 throw new NotLoggedInException("Not Logged In");
             }
 
-            if(requestParams.Count != 5)
+            if(requestData.Count != 4)
             {
                 throw new WrongParametersException("Wrong Parameters");
             }
 
-            List<Card> newDeck = new List<Card>();
-            foreach (KeyValuePair<string, string> pair in requestParams)
+            List<int> newDeckIDs = new List<int>();
+            foreach (KeyValuePair<string, string> pair in requestData)
             {
-                if (pair.Key != TOKENKEY)
+                int id;
+                try
                 {
-                    int id;
-                    try
-                    {
-                        id = Convert.ToInt32(pair.Value);
-                    }
-                    catch(Exception e)
-                    {
-                        throw new WrongParametersException("Wrong Parameters");
-                    }
-                    newDeck.Add(CardRepo.Instance.GetByID(id));
+                    id = Convert.ToInt32(pair.Value);
                 }
+                catch(Exception e)
+                {
+                    throw new WrongParametersException("Wrong Parameters");
+                }
+                newDeckIDs.Add(id);
             }
 
             User user = UserRepo.Instance.GetByToken(token);
@@ -538,38 +624,27 @@ namespace MonsterTradingCardsGame
                 throw new NothingFoundException("User does not Exists");
             }
 
-            List<Card> deck = CardRepo.Instance.GetDeckOfUser(user.ID);
-            if (deck == null)
-            {
-                throw new NothingFoundException("User does not Exists");
-            }
+            user = new User(user, cards);
 
-            user = new User(user, cards, deck);
-
-            bool allWorked = user.ChangeDeck(newDeck);
+            bool comethingChanged = user.ChangeDeck(newDeckIDs);
 
             foreach (Card card in user.Cards)
             {
                 CardRepo.Instance.Update(card);
             }
 
-            if(!allWorked)
+            if(!comethingChanged)
             {
-                throw new InputNotAllowedException("Request worked partly");
+                throw new InputNotAllowedException("Nothing was changed");
             }
 
             string message = user.Username + " has changed Deck.";
             SendResponseMessage(message);
         }
 
-        private void HandleAcquirePackages(Dictionary<string, string> requestParams)
+        private void HandleAcquirePackages()
         {
-            if (!requestParams.ContainsKey(TOKENKEY))
-            {
-                throw new NotLoggedInException("Authorization Required (Token)");
-            }
-
-            string token = requestParams[TOKENKEY];
+            string token = GetTokenFromHeaders();
 
             if (token == null)
             {
@@ -586,75 +661,81 @@ namespace MonsterTradingCardsGame
                 throw new NothingFoundException("User does not Exists");
             }
 
-            user = new User(user, CardRepo.Instance.GetCardsOfUser(user.ID));
+            List<Card> cards = CardRepo.Instance.GetCardsOfUser(user.ID);
+            if (cards == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            user = new User(user, cards);
 
             //TODO Packet type at requestParams["0"]
-            List<Card> cards = user.BuyPackage();
-            if (cards == null)
+            List<Card> newCards = user.BuyPackage();
+            if (newCards == null)
             {
                 throw new NothingFoundException("Not enough Coins");
             }
 
-            foreach (Card card in cards)
+            foreach (Card card in newCards)
             {
                 CardRepo.Instance.Add(card);
             }
             UserRepo.Instance.Update(user);
 
-            string message = user.Username + " has " + cards.Count + " new Cards.";
+            string message = user.Username + " has " + newCards.Count + " new Cards.";
             SendResponseMessage(message, "201 Created");
         }
 
-        private void HandleCreateTradingDeal(Dictionary<string, string> requestParams)
+        private void HandleCreateTradingDeal()
         {
             // Verarbeite die GET-Anfrage und erstelle die Antwort
             string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleCreateTradingDeal";
             SendResponse(response);
         }
 
-        private void HandleGetUserData(Dictionary<string, string> requestParams)
+        private void HandleGetUserData()
         {
             // Verarbeite die GET-Anfrage und erstelle die Antwort
             string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleGetUserData";
             SendResponse(response);
         }
 
-        private void HandleGetStats(Dictionary<string, string> requestParams)
+        private void HandleGetStats()
         {
             // Verarbeite die GET-Anfrage und erstelle die Antwort
             string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleGetStats";
             SendResponse(response);
         }
 
-        private void HandleGetScoreboard(Dictionary<string, string> requestParams)
+        private void HandleGetScoreboard()
         {
             // Verarbeite die GET-Anfrage und erstelle die Antwort
             string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleGetScoreboard";
             SendResponse(response);
         }
 
-        private void HandleGetTradingDeals(Dictionary<string, string> requestParams)
+        private void HandleGetTradingDeals()
         {
             // Verarbeite die GET-Anfrage und erstelle die Antwort
             string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleGetTradingDeals";
             SendResponse(response);
         }
 
-        private void HandleEditUserData(Dictionary<string, string> requestParams)
+        private void HandleEditUserData()
         {
             // Verarbeite die GET-Anfrage und erstelle die Antwort
             string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleEditUserData";
             SendResponse(response);
         }
 
-        private void HandleBattle(Dictionary<string, string> requestParams)
+        private void HandleBattle()
         {
             // Verarbeite die GET-Anfrage und erstelle die Antwort
             string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleBattle";
             SendResponse(response);
         }
 
-        private void HandleDeleteTrading(Dictionary<string, string> requestParams)
+        private void HandleDeleteTrading()
         {
             // Verarbeite die GET-Anfrage und erstelle die Antwort
             string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleDeleteTrading";

@@ -67,6 +67,11 @@ namespace MonsterTradingCardsGame.Model
             }
         }
 
+        public override string ToString()
+        {
+            return base.ToString() + $" | HP: {MaxHP}";
+        }
+
         public override void ResetStats()
         {
             HP = MaxHP;

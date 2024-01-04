@@ -31,8 +31,15 @@ namespace MonsterTradingCardsGame
 
         static void ResetDB()
         {
-            CardRepo.Instance.DropCardsTable();
-            UserRepo.Instance.DropUsersTable();
+            try
+            {
+                CardRepo.Instance.DropCardsTable();
+                UserRepo.Instance.DropUsersTable();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         /*static void TestCardCreation()

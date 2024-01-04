@@ -47,6 +47,11 @@ namespace MonsterTradingCardsGame.Model
             Console.WriteLine($"The Spell {Name} (DMG: {DMG}, ElementType: {ElementType}) was played. ({Uses}/{MaxUses} Uses left)");
         }
 
+        public override string ToString()
+        {
+            return base.ToString() + $" | Uses: {MaxUses}";
+        }
+
         public override void ResetStats()
         {
             Uses = MaxUses;

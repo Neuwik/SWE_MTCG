@@ -14,7 +14,7 @@ namespace MonsterTradingCardsGame.Model
         protected static List<string> Names = new List<string>() { "Pawn", "Rook", "Kight", "Bishop", "Queen", "King" };
         public static readonly int MAXSTRENGTH = Names.Count * 10;
 
-        public int ID { get; init; }
+        public int ID { get; init; } = -1;
         public int DMG { get; init; } = 1;
         public bool InDeck { get; set; } = false;
         public int UserID { get; private set; }
@@ -65,7 +65,7 @@ namespace MonsterTradingCardsGame.Model
         public void TradeCard(int userID)
         {
             UserID = userID;
-            Console.WriteLine(UserID);
+            //Console.WriteLine(UserID);
             ResetStats();
         }
 
@@ -77,6 +77,11 @@ namespace MonsterTradingCardsGame.Model
                 i = Names.Count - 1;
             }
             return ElementType.ToString() + " " + Names[i] + " " + this.GetType().Name;
+        }
+
+        public override string ToString()
+        {
+            return $"{Name} | Element Type: {ElementType.ToString()} | DMG: {DMG}";
         }
 
         public abstract void ResetStats();

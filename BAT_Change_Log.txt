@@ -1,0 +1,4 @@
+Name -> Username
+3,6 -> useless because card packs are random and not created
+5 should fail -> no limeted amount of card packs
+7 -> less money because more spent on 5
