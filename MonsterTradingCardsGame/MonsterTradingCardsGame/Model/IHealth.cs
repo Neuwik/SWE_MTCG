@@ -11,6 +11,6 @@ namespace MonsterTradingCardsGame.Model
         public int MaxHP { get; init; }
         public int HP { get; protected set; }
 
-        public void LooseHP(int dmg, EElementType elementType = EElementType.NORMAL);
+        public int LooseHP(int dmg, EElementType elementType = EElementType.NORMAL);
     }
 }

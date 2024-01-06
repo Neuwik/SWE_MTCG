@@ -1,4 +1,5 @@
 ﻿using MonsterTradingCardsGame.Model;
+using MonsterTradingCardsGame.Other;
 using MonsterTradingCardsGame.Request_Handling;
 using System;
 using System.Collections;
@@ -17,7 +18,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MonsterTradingCardsGame
 {
-    internal class ClientHandler
+    public class ClientHandler
     {
         private Socket client;
         private List<string> requestHistory;
@@ -355,7 +356,7 @@ namespace MonsterTradingCardsGame
 
         private void SendResponseJSON(string json, string responseCode = "200 OK")
         {
-            string response = $"{responseCode}\r\nContent-Type: application/json -d \r\n\r\n {json}\r\n";
+            string response = $"{responseCode}\r\nContent-Type: application/json -d \r\n\r\n{json}\r\n";
             SendResponse(response);
         }
 
@@ -468,8 +469,7 @@ namespace MonsterTradingCardsGame
 
         private void HandleCreatePackages()
         {
-            string message = "Useless, Cardpacks are random";
-            SendResponseMessage(message);
+            throw new BadRequestException("Create Packages not needed (Packeges are random)");
         }
 
         private void HandleGetCards()
@@ -681,9 +681,7 @@ namespace MonsterTradingCardsGame
 
         private void HandleCreateTradingDeal()
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleCreateTradingDeal";
-            SendResponse(response);
+            throw new NotYetImplementedException("Create Trading Deal");
         }
 
         private void HandleGetUserData()
@@ -756,7 +754,7 @@ namespace MonsterTradingCardsGame
                 throw new NothingFoundException("No Users found");
             }
 
-            users.OrderByDescending(u => u.Elo);
+            users = users.OrderByDescending(u => u.Elo).ToList();
 
             string[] jsonArray = new string[users.Count];
             for (int i = 0; i < jsonArray.Length; i++)
@@ -768,9 +766,7 @@ namespace MonsterTradingCardsGame
 
         private void HandleGetTradingDeals()
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleGetTradingDeals";
-            SendResponse(response);
+            throw new NotYetImplementedException("Get Trading Deals");
         }
 
         private void HandleEditUserData()
@@ -836,16 +832,68 @@ namespace MonsterTradingCardsGame
 
         private void HandleBattle()
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleBattle";
-            SendResponse(response);
+            string token = GetTokenFromHeaders();
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            {
+                throw new NotLoggedInException("Not Logged In");
+            }
+
+            User user = UserRepo.Instance.GetByToken(token);
+            if (user == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            List<Card> cards = CardRepo.Instance.GetCardsOfUser(user.ID);
+            if (cards == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            user = new User(user, cards);
+
+            BattleHandler.Instance.UserJoinQue(user);
+
+            string message = $"{token} joined Battle Que";
+            SendResponseMessage(message, "202 Accepted");
+
+            while (BattleHandler.Instance.UserIsInQue(user))
+            {
+                Thread.Sleep(1000);
+                //message = $"{token} in Battle Que";
+                //SendResponseMessage(message, "208 Already Reported");
+            }
+
+            List<string> battleLog;
+            string[] messageArray;
+
+            while (BattleHandler.Instance.UserIsInBattle(user))
+            {
+                Thread.Sleep(1000);
+                battleLog = BattleHandler.Instance.ReadBattleLog(user);
+                if (battleLog.Count > 0)
+                {
+                    messageArray = battleLog.ToArray();
+                    SendResponseMessageArray(messageArray, "208 Already Reported");
+                }
+            }
+
+            battleLog = BattleHandler.Instance.ReadBattleLog(user);
+            if (battleLog.Count > 0)
+            {
+                messageArray = battleLog.ToArray();
+                SendResponseMessageArray(messageArray, "200 OK");
+            }
         }
 
         private void HandleDeleteTrading()
         {
-            // Verarbeite die GET-Anfrage und erstelle die Antwort
-            string response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n HandleDeleteTrading";
-            SendResponse(response);
+            throw new NotYetImplementedException("Delete Trading");
         }
     }
 }

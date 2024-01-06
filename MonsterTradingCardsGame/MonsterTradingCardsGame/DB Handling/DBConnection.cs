@@ -8,7 +8,7 @@ using Npgsql;
 
 namespace MonsterTradingCardsGame
 {
-    internal class DBConnection
+    public class DBConnection
     {
         //docker run --name SWE_MTCG -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=debian123! -p 5432:5432 -v pgdata:/var/lib/postgresql/data postgres
 

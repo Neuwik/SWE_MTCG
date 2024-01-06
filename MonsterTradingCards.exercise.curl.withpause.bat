@@ -154,11 +154,11 @@ pause
 
 REM --------------------------------------------------
 echo 11) configure deck
-curl -i -X PUT http://localhost:10001/deck --header "Content-Type: application/json" --header "Authorization: Bearer kienboec-mtcgToken" -d "[\"13\", \"14\", \"15\", \"16\"]"
+curl -i -X PUT http://localhost:10001/deck --header "Content-Type: application/json" --header "Authorization: Bearer kienboec-mtcgToken" -d "[13, 14, 15, 16]"
 echo.
 curl -i -X GET http://localhost:10001/deck --header "Authorization: Bearer kienboec-mtcgToken"
 echo.
-curl -i -X PUT http://localhost:10001/deck --header "Content-Type: application/json" --header "Authorization: Bearer altenhof-mtcgToken" -d "[\"29\", \"30\", \"31\", \"32\"]"
+curl -i -X PUT http://localhost:10001/deck --header "Content-Type: application/json" --header "Authorization: Bearer altenhof-mtcgToken" -d "[29, 30, 31, 32]"
 echo.
 curl -i -X GET http://localhost:10001/deck --header "Authorization: Bearer altenhof-mtcgToken"
 echo.
@@ -167,13 +167,13 @@ echo.
 pause
 
 echo should fail and show original from before:
-curl -i -X PUT http://localhost:10001/deck --header "Content-Type: application/json" --header "Authorization: Bearer altenhof-mtcgToken" -d "[\"13\", \"14\", \"15\", \"16\"]"
+curl -i -X PUT http://localhost:10001/deck --header "Content-Type: application/json" --header "Authorization: Bearer altenhof-mtcgToken" -d "[13, 14, 15, 16]"
 echo.
 curl -i -X GET http://localhost:10001/deck --header "Authorization: Bearer altenhof-mtcgToken"
 echo.
 echo.
 echo should fail ... only 3 cards set
-curl -i -X PUT http://localhost:10001/deck --header "Content-Type: application/json" --header "Authorization: Bearer altenhof-mtcgToken" -d "[\"aa9999a0-734c-49c6-8f4a-651864b14e62\", \"d6e9c720-9b5a-40c7-a6b2-bc34752e3463\", \"d60e23cf-2238-4d49-844f-c7589ee5342e\"]"
+curl -i -X PUT http://localhost:10001/deck --header "Content-Type: application/json" --header "Authorization: Bearer altenhof-mtcgToken" -d "[13, 14, 15]"
 echo.
 
 pause
@@ -262,6 +262,7 @@ pause
 REM --------------------------------------------------
 echo 17) battle
 start /b "kienboec battle" curl -i -X POST http://localhost:10001/battles --header "Authorization: Bearer kienboec-mtcgToken"
+ping localhost -n 10 >NUL 2>NUL
 start /b "altenhof battle" curl -i -X POST http://localhost:10001/battles --header "Authorization: Bearer altenhof-mtcgToken"
 ping localhost -n 10 >NUL 2>NUL
 

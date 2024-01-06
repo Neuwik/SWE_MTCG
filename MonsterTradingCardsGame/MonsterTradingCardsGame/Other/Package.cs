@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MonsterTradingCardsGame.Model;
 
-namespace MonsterTradingCardsGame.Model
+namespace MonsterTradingCardsGame.Other
 {
     public enum EPackageType { STARTER = 0, GENERIC = 1, MONSTER = 2, SPELL = 3 }
     public static class Package

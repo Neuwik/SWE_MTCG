@@ -1,4 +1,5 @@
-﻿using MonsterTradingCardsGame.Request_Handling;
+﻿using MonsterTradingCardsGame.Other;
+using MonsterTradingCardsGame.Request_Handling;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -273,9 +274,11 @@ namespace MonsterTradingCardsGame.Model
             return newCards;
         }
 
-        public void LooseHP(int dmg, EElementType elementType)
+        public int LooseHP(int dmg, EElementType elementType)
         {
-            HP -= dmg;
+            int realDMG = (dmg > HP) ? HP : dmg;
+            HP -= realDMG;
+            return realDMG;
         }
 
         public void ChangeUserData(string username, string bio, string image)
@@ -294,10 +297,14 @@ namespace MonsterTradingCardsGame.Model
         public void AddWin(int enemyElo)
         {
             Wins++;
+            float eloDifPerzent = enemyElo / Elo;
+            Elo += ((int)(Battle.ELOCHANGE * eloDifPerzent));
         }
         public void AddLoss(int enemyElo)
         {
             Losses++;
+            float eloDifPerzent = Elo / enemyElo;
+            Elo -= ((int)(Battle.ELOCHANGE * eloDifPerzent));
         }
         public void AddDraw()
         {

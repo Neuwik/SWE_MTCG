@@ -45,26 +45,33 @@ namespace MonsterTradingCardsGame.Model
             Console.WriteLine($"The Monster {Name} (HP: {HP}, DMG: {DMG}, ElementType: {ElementType}) was played.");
         }
 
-        public void LooseHP(int dmg, EElementType elementType)
+        public int LooseHP(int dmg, EElementType elementType)
         {
             int elementDifference = ElementType - elementType;
+            int realDMG;
 
             if (ElementType == EElementType.NORMAL || elementType == EElementType.NORMAL)
             {
-                HP -= dmg;
+                realDMG = dmg;
             }
             else if (elementDifference == 1 || elementDifference == -4)
             {
-                HP -= (int)(dmg * 0.8);
+                realDMG = (int)(dmg * 0.8);
             }
             else if (elementDifference == -1 || elementDifference == 4)
             {
-                HP -= (int)(dmg * 1.2);
+                realDMG = (int)(dmg * 1.2);
             }
             else
             {
-                HP -= dmg;
+                realDMG = dmg;
             }
+
+            realDMG = (realDMG > HP) ? HP : realDMG;
+
+            HP -= realDMG;
+
+            return realDMG;
         }
 
         public override string ToString()

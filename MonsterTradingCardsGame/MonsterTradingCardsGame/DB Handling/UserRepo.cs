@@ -274,6 +274,26 @@ namespace MonsterTradingCardsGame
             return false;
         }
 
+        public void UpdateStats(User user)
+        {
+            using (IDbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = @"UPDATE Users 
+                                        SET Elo = @Elo, 
+                                            Wins = @Wins, 
+                                            Draws = @Draws, 
+                                            Losses = @Losses
+                                        WHERE ID = @ID";
+
+                command.AddParameter("@ID", user.ID);
+                command.AddParameter("@Elo", user.Elo);
+                command.AddParameter("@Wins", user.Wins);
+                command.AddParameter("@Draws", user.Draws);
+                command.AddParameter("@Losses", user.Losses);
+                command.ExecuteNonQuery();
+            }
+        }
+
         private User ReadUserFromReader(IDataReader reader)
         {
             if (reader.Read())

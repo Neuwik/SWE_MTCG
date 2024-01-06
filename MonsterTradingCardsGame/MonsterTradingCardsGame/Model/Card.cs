@@ -57,9 +57,9 @@ namespace MonsterTradingCardsGame.Model
             Console.WriteLine($"The Card {Name} (DMG: {DMG}, ElementType: {ElementType}) was played.");
         }
 
-        public void Attack(IHealth target)
+        public int Attack(IHealth target)
         {
-            target.LooseHP(DMG, ElementType);
+            return target.LooseHP(DMG, ElementType);
         }
 
         public void TradeCard(int userID)
