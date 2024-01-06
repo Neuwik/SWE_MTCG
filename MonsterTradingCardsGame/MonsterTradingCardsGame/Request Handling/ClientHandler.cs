@@ -3,6 +3,7 @@ using MonsterTradingCardsGame.Other;
 using MonsterTradingCardsGame.Request_Handling;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -124,6 +125,10 @@ namespace MonsterTradingCardsGame
                     {
                         HandleGetTradingDeals();
                     }
+                    else if (request.StartsWith("GET /battles"))
+                    {
+                        HandlegetBattle();
+                    }
                     // Add more conditions to differentiate between different GET endpoints
                     else
                     {
@@ -151,6 +156,14 @@ namespace MonsterTradingCardsGame
                     if (request.StartsWith("DELETE /tradings"))
                     {
                         HandleDeleteTrading();
+                    }
+                    else if (request.StartsWith("DELETE /sessions"))
+                    {
+                        HandleLogout();
+                    }
+                    else if (request.StartsWith("DELETE /battles"))
+                    {
+                        HandleDeleteBattle();
                     }
                     // Add more conditions to differentiate between different DELETE endpoints
                     else
@@ -454,13 +467,9 @@ namespace MonsterTradingCardsGame
             {
                 throw new NothingFoundException("Wrong Username or Password");
             }
-            else if(MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            else if(!MTCG_Server.Instance.LoginToken(token))
             {
-                throw new AlreadyLoggedInException("Login Failed");
-            }
-            else
-            {
-                MTCG_Server.Instance.LoggedInUsers.Add(token);
+                throw new AlreadyLoggedInException("Already logged in");
             }
 
             string message = "User logged in: " + token;
@@ -480,7 +489,7 @@ namespace MonsterTradingCardsGame
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
-            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            else if (!MTCG_Server.Instance.TokenLoggedIn(token))
             {
                 throw new NotLoggedInException("Not Logged In");
             }
@@ -524,7 +533,7 @@ namespace MonsterTradingCardsGame
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
-            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            else if (!MTCG_Server.Instance.TokenLoggedIn(token))
             {
                 throw new NotLoggedInException("Not Logged In");
             }
@@ -580,7 +589,7 @@ namespace MonsterTradingCardsGame
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
-            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            else if (!MTCG_Server.Instance.TokenLoggedIn(token))
             {
                 throw new NotLoggedInException("Not Logged In");
             }
@@ -643,7 +652,7 @@ namespace MonsterTradingCardsGame
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
-            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            else if (!MTCG_Server.Instance.TokenLoggedIn(token))
             {
                 throw new NotLoggedInException("Not Logged In");
             }
@@ -692,7 +701,7 @@ namespace MonsterTradingCardsGame
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
-            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            else if (!MTCG_Server.Instance.TokenLoggedIn(token))
             {
                 throw new NotLoggedInException("Not Logged In");
             }
@@ -721,7 +730,7 @@ namespace MonsterTradingCardsGame
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
-            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            else if (!MTCG_Server.Instance.TokenLoggedIn(token))
             {
                 throw new NotLoggedInException("Not Logged In");
             }
@@ -743,7 +752,7 @@ namespace MonsterTradingCardsGame
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
-            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            else if (!MTCG_Server.Instance.TokenLoggedIn(token))
             {
                 throw new NotLoggedInException("Not Logged In");
             }
@@ -777,7 +786,7 @@ namespace MonsterTradingCardsGame
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
-            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            else if (!MTCG_Server.Instance.TokenLoggedIn(token))
             {
                 throw new NotLoggedInException("Not Logged In");
             }
@@ -838,7 +847,7 @@ namespace MonsterTradingCardsGame
             {
                 throw new NotLoggedInException("Authorization Required (Token)");
             }
-            else if (!MTCG_Server.Instance.LoggedInUsers.Contains(token))
+            else if (!MTCG_Server.Instance.TokenLoggedIn(token))
             {
                 throw new NotLoggedInException("Not Logged In");
             }
@@ -892,13 +901,96 @@ namespace MonsterTradingCardsGame
             if (battleLog != null && battleLog.Count > 0)
             {
                 messageArray = battleLog.ToArray();
-                SendResponseMessageArray(messageArray, "200 OK");
+                SendResponseMessageArray(messageArray);
             }
         }
 
         private void HandleDeleteTrading()
         {
             throw new NotYetImplementedException("Delete Trading");
+        }
+
+        private void HandleLogout()
+        {
+            string token = GetTokenFromHeaders();
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.LogoutToken(token))
+            {
+                throw new AlreadyLoggedInException("Not logged in");
+            }
+
+            string message = $"{token} logged out";
+            SendResponseMessage(message);
+        }
+
+        private void HandleDeleteBattle()
+        {
+            string token = GetTokenFromHeaders();
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.TokenLoggedIn(token))
+            {
+                throw new NotLoggedInException("Not Logged In");
+            }
+
+            User user = UserRepo.Instance.GetByToken(token);
+            if (user == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            if (BattleHandler.Instance.UserIsInRunningBattle(user))
+            {
+                throw new InputNotAllowedException("User is in Battle");
+            }
+
+            if (!BattleHandler.Instance.UserLeaveQueue(user))
+            {
+                throw new InputNotAllowedException("Username not in Queue");
+            }
+
+            string message = $"{user.Username} left queue";
+            SendResponseMessage(message);
+        }
+
+        private void HandlegetBattle()
+        {
+            string token = GetTokenFromHeaders();
+
+            if (token == null)
+            {
+                throw new NotLoggedInException("Authorization Required (Token)");
+            }
+            else if (!MTCG_Server.Instance.TokenLoggedIn(token))
+            {
+                throw new NotLoggedInException("Not Logged In");
+            }
+
+            User user = UserRepo.Instance.GetByToken(token);
+            if (user == null)
+            {
+                throw new NothingFoundException("User does not Exists");
+            }
+
+            if (!BattleHandler.Instance.UserIsInRunningBattle(user))
+            {
+                throw new InputNotAllowedException("User not in Battle");
+            }
+
+            List<string> battleLog = BattleHandler.Instance.ReadBattleLog(user);
+            if (battleLog == null || battleLog.Count <= 0)
+            {
+                throw new NothingFoundException("Battle not started yet");
+            }
+            string[] messageArray = battleLog.ToArray();
+            SendResponseMessageArray(messageArray);
         }
     }
 }

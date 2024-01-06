@@ -13,7 +13,8 @@ namespace MonsterTradingCardsGame
 {
     public class MTCG_Server
     {
-        public ConcurrentBag<string> LoggedInUsers;
+        private readonly int LOGOUTTIMER = 120000; // 2min
+        private Dictionary<string, DateTime> loggedInTokens;
         public static readonly int PORT = 10001;
         public static readonly string URL = "http://127.0.0.1:" + MTCG_Server.PORT;
         private Socket listener;
@@ -35,7 +36,7 @@ namespace MonsterTradingCardsGame
         private MTCG_Server()
         {
             listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            LoggedInUsers = new ConcurrentBag<string>();
+            loggedInTokens = new Dictionary<string, DateTime>();
         }
 
         public void Start()
@@ -59,6 +60,55 @@ namespace MonsterTradingCardsGame
             {
                 listener.Close();
             }
+        }
+
+        public bool TokenLoggedIn(string token, bool resetTimer = true)
+        {
+            lock (loggedInTokens)
+            {
+                if (!loggedInTokens.ContainsKey(token))
+                {
+                    return false;
+                }
+                if ((loggedInTokens[token] - DateTime.Now).TotalMilliseconds > LOGOUTTIMER)
+                {
+                    loggedInTokens.Remove(token);
+                    return false;
+                }
+                if (resetTimer)
+                {
+                    loggedInTokens[token] = DateTime.Now;
+                }
+            }
+            return true;
+        }
+
+        public bool LoginToken(string token)
+        {
+            if (TokenLoggedIn(token, false))
+            {
+                return false;
+            }
+
+            lock(loggedInTokens)
+            {
+                loggedInTokens.Add(token, DateTime.Now);
+            }
+            return true;
+        }
+
+        public bool LogoutToken(string token)
+        {
+            if (!TokenLoggedIn(token, false))
+            {
+                return false;
+            }
+
+            lock (loggedInTokens)
+            {
+                loggedInTokens.Remove(token);
+            }
+            return true;
         }
     }
 }

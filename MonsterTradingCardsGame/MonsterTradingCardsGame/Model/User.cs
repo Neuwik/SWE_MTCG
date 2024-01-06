@@ -21,8 +21,10 @@ namespace MonsterTradingCardsGame.Model
         [JsonIgnore]
         public readonly bool IsAdmin = false;
 
+        [JsonIgnore]
         public int ID { get; init; } = -1;
         public string Username { get; private set; }
+        [JsonIgnore]
         public string Token { get; private set; }
         public string Bio { get; private set; } = "Hey, I am playing MTCG!";
         public string Image { get; private set; } = "°_°";

@@ -36,11 +36,29 @@ curl -i -X POST http://localhost:10001/sessions --header "Content-Type: applicat
 echo.
 curl -i -X POST http://localhost:10001/sessions --header "Content-Type: application/json" -d "{\"Username\":\"admin\",    \"Password\":\"istrator\"}"
 echo.
-
 :: pause
 
 echo should fail:
+curl -i -X POST http://localhost:10001/sessions --header "Content-Type: application/json" -d "{\"Username\":\"kienboec\", \"Password\":\"daniel\"}"
+echo.
 curl -i -X POST http://localhost:10001/sessions --header "Content-Type: application/json" -d "{\"Username\":\"kienboec\", \"Password\":\"different\"}"
+echo.
+echo.
+
+:: pause
+
+REM --------------------------------------------------
+echo 2.1) Logout Users
+curl -i -X DELETE http://localhost:10001/sessions --header "Authorization: Bearer kienboec-mtcgToken"
+echo.
+:: pause
+
+echo should fail:
+curl -i -X DELETE http://localhost:10001/sessions --header "Authorization: Bearer kienboec-mtcgToken"
+echo.
+
+echo Login agin:
+curl -i -X POST http://localhost:10001/sessions --header "Authorization: Bearer kienboec-mtcgToken"
 echo.
 echo.
 
@@ -318,6 +336,28 @@ echo.
 pause
 echo.
 curl -i -X GET http://localhost:10001/scoreboard --header "Authorization: Bearer kienboec-mtcgToken"
+echo.
+
+pause
+
+echo should fail not in battle:
+curl -i -X GET http://localhost:10001/battles --header "Authorization: Bearer kienboec-mtcgToken"
+echo.
+echo.
+
+pause
+
+REM --------------------------------------------------
+echo 19.2) leave queue
+curl -i -X POST http://localhost:10001/battles --header "Authorization: Bearer kienboec-mtcgToken"
+ping localhost -n 10 >NUL 2>NUL
+curl -i -X DELETE http://localhost:10001/battles --header "Authorization: Bearer kienboec-mtcgToken"
+echo.
+
+pause
+
+echo should fail not in queue:
+curl -i -X DELETE http://localhost:10001/battles --header "Authorization: Bearer kienboec-mtcgToken"
 echo.
 echo.
 
