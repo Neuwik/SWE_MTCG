@@ -397,6 +397,10 @@ namespace MonsterTradingCardsGame
         private void HandleUserRegistration()
         {
             string jsonUserString = requestData.FirstOrDefault();
+            if (jsonUserString == null)
+            {
+                throw new WrongParametersException("Wrong Parameters");
+            }
             JsonElement jsonUser = JsonDocument.Parse(jsonUserString).RootElement;
 
             string username = null;
@@ -430,7 +434,7 @@ namespace MonsterTradingCardsGame
                 throw new InternalServerErrorException("Registration Failed");
             }
 
-            user.AddNewCards(Package.GetStarterPackage());
+            user.AddNewCards(Package.GetPackage(EPackageType.STARTER));
             foreach (Card card in user.Cards)
             {
                 CardRepo.Instance.Add(card);
@@ -442,6 +446,10 @@ namespace MonsterTradingCardsGame
         private void HandleLogin()
         {
             string jsonUserString = requestData.FirstOrDefault();
+            if (jsonUserString == null)
+            {
+                throw new WrongParametersException("Wrong Parameters");
+            }
             JsonElement jsonUser = JsonDocument.Parse(jsonUserString).RootElement;
 
             string username = null;
@@ -682,7 +690,7 @@ namespace MonsterTradingCardsGame
             {
                 CardRepo.Instance.Add(card);
             }
-            UserRepo.Instance.Update(user);
+            UserRepo.Instance.UpdateCoins(user);
 
             string message = user.Username + " has " + newCards.Count + " new Cards.";
             SendResponseMessage(message, "201 Created");
@@ -805,6 +813,10 @@ namespace MonsterTradingCardsGame
             }
 
             string jsonUserString = requestData.FirstOrDefault();
+            if (jsonUserString == null)
+            {
+                throw new WrongParametersException("Wrong Parameters");
+            }
             JsonElement jsonUser = JsonDocument.Parse(jsonUserString).RootElement;
 
             username = null;
@@ -833,7 +845,7 @@ namespace MonsterTradingCardsGame
 
             user.ChangeUserData(username, bio, image);
 
-            UserRepo.Instance.Update(user);
+            UserRepo.Instance.UpdateDetails(user);
 
             string message = user.Username + " was changed";
             SendResponseMessage(message);

@@ -160,6 +160,7 @@ namespace MonsterTradingCardsGame
                     command.CommandText = @"UPDATE Users 
                                         SET Username = @Username, 
                                             Password = @Password, 
+                                            Token = @Token, 
                                             Bio = @Bio, 
                                             Image = @Image, 
                                             Coins = @Coins, 
@@ -173,6 +174,7 @@ namespace MonsterTradingCardsGame
                     command.AddParameter("@ID", user.ID);
                     command.AddParameter("@Username", user.Username);
                     command.AddParameter("@Password", user.Password);
+                    command.AddParameter("@Token", user.Token);
                     command.AddParameter("@Bio", user.Bio);
                     command.AddParameter("@Image", user.Image);
                     command.AddParameter("@Coins", user.Coins);
@@ -331,6 +333,44 @@ namespace MonsterTradingCardsGame
                     command.AddParameter("@Wins", user.Wins);
                     command.AddParameter("@Draws", user.Draws);
                     command.AddParameter("@Losses", user.Losses);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void UpdateCoins(User user)
+        {
+            lock (connection)
+            {
+                using (IDbCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = @"UPDATE Users 
+                                        SET Coins = @Coins
+                                        WHERE ID = @ID";
+
+                    command.AddParameter("@ID", user.ID);
+                    command.AddParameter("@Coins", user.Coins);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void UpdateDetails(User user)
+        {
+            lock (connection)
+            {
+                using (IDbCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = @"UPDATE Users 
+                                        SET Username = @Username, 
+                                            Bio = @Bio, 
+                                            Image = @Image
+                                        WHERE ID = @ID";
+
+                    command.AddParameter("@ID", user.ID);
+                    command.AddParameter("@Username", user.Username);
+                    command.AddParameter("@Bio", user.Bio);
+                    command.AddParameter("@Image", user.Image);
                     command.ExecuteNonQuery();
                 }
             }

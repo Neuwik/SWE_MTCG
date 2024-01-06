@@ -58,7 +58,7 @@ curl -i -X DELETE http://localhost:10001/sessions --header "Authorization: Beare
 echo.
 
 echo Login agin:
-curl -i -X POST http://localhost:10001/sessions --header "Authorization: Bearer kienboec-mtcgToken"
+curl -i -X POST http://localhost:10001/sessions --header "Content-Type: application/json" -d "{\"Username\":\"kienboec\", \"Password\":\"daniel\"}"
 echo.
 echo.
 

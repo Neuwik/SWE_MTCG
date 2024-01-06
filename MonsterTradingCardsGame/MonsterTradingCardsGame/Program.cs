@@ -7,6 +7,7 @@ namespace MonsterTradingCardsGame
     {
         static void Main(string[] args)
         {
+            //Reset DB for curl script usage
             ResetDB();
             StartServer();
         }

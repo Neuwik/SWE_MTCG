@@ -26,6 +26,7 @@ namespace MonsterTradingCardsGame.Model
         {
             Name = GenerateCardName();
         }
+
         public Card(int dmg, EElementType elementType)
         {
             DMG = dmg;

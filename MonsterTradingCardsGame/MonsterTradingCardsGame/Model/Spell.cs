@@ -23,22 +23,10 @@ namespace MonsterTradingCardsGame.Model
             Uses = MaxUses;
         }
 
-        public Spell(string name, int dmg, EElementType elementType, int maxUses, int userID) : base(name, dmg, elementType, userID)
-        {
-            MaxUses = maxUses;
-            Uses = MaxUses;
-        }
-
         public Spell(int id, string name, int dmg, EElementType elementType, int maxUses, bool inDeck, int userID) : base(id, name, dmg, elementType, inDeck, userID)
         {
             MaxUses = maxUses;
             Uses = MaxUses;
-        }
-
-        public Spell(int id, string name, int dmg, EElementType elementType, int uses, int maxUses, bool inDeck, int userID) : base(id, name, dmg, elementType, inDeck, userID)
-        {
-            MaxUses = maxUses;
-            Uses = uses;
         }
 
         public override void PlayCard()

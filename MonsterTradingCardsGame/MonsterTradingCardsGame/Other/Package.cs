@@ -14,17 +14,6 @@ namespace MonsterTradingCardsGame.Other
         public const int COST = 5;
         private static Random random = new Random();
 
-        public static List<Card> GetPackage(int packageTypeIndex = 1)
-        {
-            Array enumValues = Enum.GetValues(typeof(EPackageType));
-            if (packageTypeIndex >= enumValues.Length || packageTypeIndex < 0)
-            {
-                packageTypeIndex = 1;
-            }
-            EPackageType elementType = (EPackageType)enumValues.GetValue(packageTypeIndex);
-            return GetPackage(elementType);
-        }
-
         public static List<Card> GetPackage(EPackageType packageType = EPackageType.GENERIC)
         {
             switch (packageType)
@@ -47,7 +36,7 @@ namespace MonsterTradingCardsGame.Other
             }
         }
 
-        public static List<Card> GetStarterPackage()
+        private static List<Card> GetStarterPackage()
         {
             List<Card> package = new List<Card>();
             for (int i = 0; i < PACKAGE_SIZE; i++)
@@ -64,7 +53,7 @@ namespace MonsterTradingCardsGame.Other
             return package;
         }
 
-        public static List<Card> GetGenericPackage()
+        private static List<Card> GetGenericPackage()
         {
             List<Card> package = new List<Card>();
             for (int i = 0; i < PACKAGE_SIZE; i++)
@@ -82,7 +71,7 @@ namespace MonsterTradingCardsGame.Other
             return package;
         }
 
-        public static List<Card> GetMonsterPackage()
+        private static List<Card> GetMonsterPackage()
         {
             List<Card> package = new List<Card>();
             for (int i = 0; i < PACKAGE_SIZE; i++)
@@ -92,7 +81,7 @@ namespace MonsterTradingCardsGame.Other
             return package;
         }
 
-        public static List<Card> GetSpellPackage()
+        private static List<Card> GetSpellPackage()
         {
             List<Card> package = new List<Card>();
             for (int i = 0; i < PACKAGE_SIZE; i++)

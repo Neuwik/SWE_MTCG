@@ -310,6 +310,7 @@ namespace MonsterTradingCardsGame.Model
             float eloChange = Battle.ELOCHANGE * eloDifPercent;
             Elo += ((int)(eloChange));
         }
+        
         public void AddLoss(int enemyElo)
         {
             Losses++;
@@ -328,6 +329,7 @@ namespace MonsterTradingCardsGame.Model
                 Elo = 0;
             }
         }
+        
         public void AddDraw()
         {
             Draws++;
