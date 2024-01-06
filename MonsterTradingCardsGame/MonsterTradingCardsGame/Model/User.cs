@@ -297,14 +297,34 @@ namespace MonsterTradingCardsGame.Model
         public void AddWin(int enemyElo)
         {
             Wins++;
-            float eloDifPerzent = enemyElo / Elo;
-            Elo += ((int)(Battle.ELOCHANGE * eloDifPerzent));
+
+            float fElo = Convert.ToSingle(Elo);
+            float fEnemyElo = Convert.ToSingle(enemyElo);
+            if (fEnemyElo < 1)
+            {
+                fEnemyElo = 1;
+            }
+            float eloDifPercent = fEnemyElo / fElo;
+            float eloChange = Battle.ELOCHANGE * eloDifPercent;
+            Elo += ((int)(eloChange));
         }
         public void AddLoss(int enemyElo)
         {
             Losses++;
-            float eloDifPerzent = Elo / enemyElo;
-            Elo -= ((int)(Battle.ELOCHANGE * eloDifPerzent));
+
+            float fElo = Convert.ToSingle(Elo);
+            float fEnemyElo = Convert.ToSingle(enemyElo);
+            if (fEnemyElo < 1)
+            {
+                fEnemyElo = 1;
+            }
+            float eloDifPercent = fElo / fEnemyElo;
+            float eloChange = Battle.ELOCHANGE * eloDifPercent;
+            Elo -= ((int)(eloChange));
+            if (Elo < 0)
+            {
+                Elo = 0;
+            }
         }
         public void AddDraw()
         {

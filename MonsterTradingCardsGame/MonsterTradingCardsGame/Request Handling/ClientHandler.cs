@@ -857,34 +857,39 @@ namespace MonsterTradingCardsGame
 
             user = new User(user, cards);
 
-            BattleHandler.Instance.UserJoinQue(user);
+            if (!BattleHandler.Instance.UserJoinQueue(user))
+            {
+                throw new InputNotAllowedException("Username already in Queue or battle");
+            }
 
-            string message = $"{token} joined Battle Que";
+            string message = $"{user.Username} joined Battle Queue";
             SendResponseMessage(message, "202 Accepted");
 
-            while (BattleHandler.Instance.UserIsInQue(user))
+            while (BattleHandler.Instance.UserIsInQueue(user))
             {
                 Thread.Sleep(1000);
-                //message = $"{token} in Battle Que";
-                //SendResponseMessage(message, "208 Already Reported");
+                /*message = $"{user.Username} in Battle Queue";
+                SendResponseMessage(message, "208 Already Reported");*/
             }
+
+            message = $"{user.Username} battle started";
+            SendResponseMessage(message, "202 Accepted");
 
             List<string> battleLog;
             string[] messageArray;
 
-            while (BattleHandler.Instance.UserIsInBattle(user))
+            while (BattleHandler.Instance.UserIsInRunningBattle(user))
             {
                 Thread.Sleep(1000);
-                battleLog = BattleHandler.Instance.ReadBattleLog(user);
-                if (battleLog.Count > 0)
-                {
-                    messageArray = battleLog.ToArray();
-                    SendResponseMessageArray(messageArray, "208 Already Reported");
-                }
+                /*message = $"{user.Username} in battle";
+                SendResponseMessage(message, "202 Accepted");*/
             }
 
+            message = $"{user.Username} battle ended";
+            SendResponseMessage(message, "202 Accepted");
+
             battleLog = BattleHandler.Instance.ReadBattleLog(user);
-            if (battleLog.Count > 0)
+            if (battleLog != null && battleLog.Count > 0)
             {
                 messageArray = battleLog.ToArray();
                 SendResponseMessageArray(messageArray, "200 OK");

@@ -35,102 +35,120 @@ namespace MonsterTradingCardsGame
 
         public void CreateCardsTableIfNotExists()
         {
-            using (IDbCommand command = connection.CreateCommand())
+            lock (connection)
             {
-                command.CommandText = "CREATE TABLE IF NOT EXISTS Cards (ID SERIAL PRIMARY KEY, Name VARCHAR(255), DMG INT, ElementType INT, MaxHP INT, MaxUses INT, InDeck BOOLEAN, UserID INT REFERENCES Users(ID))";
-                command.ExecuteNonQuery();
+                using (IDbCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = "CREATE TABLE IF NOT EXISTS Cards (ID SERIAL PRIMARY KEY, Name VARCHAR(255), DMG INT, ElementType INT, MaxHP INT, MaxUses INT, InDeck BOOLEAN, UserID INT REFERENCES Users(ID))";
+                    command.ExecuteNonQuery();
+                }
             }
         }
 
         public void DropCardsTable()
         {
-            using (IDbCommand command = connection.CreateCommand())
+            lock (connection)
             {
-                command.CommandText = "DROP TABLE IF EXISTS Cards";
-                command.ExecuteNonQuery();
-                instance = null;
+                using (IDbCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = "DROP TABLE IF EXISTS Cards";
+                    command.ExecuteNonQuery();
+                    instance = null;
+                }
             }
         }
 
         public void Add(Card card)
         {
-            using (IDbCommand command = connection.CreateCommand())
+            lock (connection)
             {
-                command.CommandText = "INSERT INTO Cards (Name, DMG, ElementType, MaxHP, MaxUses, InDeck, UserID) VALUES (@Name, @DMG, @ElementType, @MaxHP, @MaxUses, @InDeck, @UserID)";
-                command.AddParameter("Name", card.Name);
-                command.AddParameter("DMG", card.DMG);
-                command.AddParameter("ElementType", (int)card.ElementType);
-                command.AddParameter("InDeck", card.InDeck);
-                command.AddParameter("UserID", card.UserID);
+                using (IDbCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = "INSERT INTO Cards (Name, DMG, ElementType, MaxHP, MaxUses, InDeck, UserID) VALUES (@Name, @DMG, @ElementType, @MaxHP, @MaxUses, @InDeck, @UserID)";
+                    command.AddParameter("Name", card.Name);
+                    command.AddParameter("DMG", card.DMG);
+                    command.AddParameter("ElementType", (int)card.ElementType);
+                    command.AddParameter("InDeck", card.InDeck);
+                    command.AddParameter("UserID", card.UserID);
 
-                if (card is Monster monster)
-                {
-                    command.AddParameter("MaxHP", monster.MaxHP);
-                    command.AddParameter("MaxUses", 0);
-                }
-                else if (card is Spell spell)
-                {
-                    command.AddParameter("MaxHP", 0);
-                    command.AddParameter("MaxUses", spell.MaxUses);
-                }
-                else
-                {
-                    throw new Exception("CardRepo: Card Type does not exist.");
-                }
+                    if (card is Monster monster)
+                    {
+                        command.AddParameter("MaxHP", monster.MaxHP);
+                        command.AddParameter("MaxUses", 0);
+                    }
+                    else if (card is Spell spell)
+                    {
+                        command.AddParameter("MaxHP", 0);
+                        command.AddParameter("MaxUses", spell.MaxUses);
+                    }
+                    else
+                    {
+                        throw new Exception("CardRepo: Card Type does not exist.");
+                    }
 
-                command.ExecuteNonQuery();
+                    command.ExecuteNonQuery();
+                }
             }
         }
 
         public Card GetByID(int id)
         {
-            using (IDbCommand command = connection.CreateCommand())
+            lock (connection)
             {
-                command.CommandText = "SELECT * FROM Cards WHERE ID = @ID";
-                command.AddParameter("ID", id);
-
-                using (IDataReader reader = command.ExecuteReader())
+                using (IDbCommand command = connection.CreateCommand())
                 {
-                    return ReadCardFromReader(reader);
+                    command.CommandText = "SELECT * FROM Cards WHERE ID = @ID";
+                    command.AddParameter("ID", id);
+
+                    using (IDataReader reader = command.ExecuteReader())
+                    {
+                        return ReadCardFromReader(reader);
+                    }
                 }
             }
         }
 
         public void Update(Card card)
         {
-            using (IDbCommand command = connection.CreateCommand())
+            lock (connection)
             {
-                if (card is Monster monster)
+                using (IDbCommand command = connection.CreateCommand())
                 {
-                    command.CommandText = "UPDATE Cards SET Name = @Name, DMG = @DMG, ElementType = @ElementType, MaxHP = @MaxHP, InDeck = @InDeck, UserID = @UserID WHERE ID = @ID";
-                    command.AddParameter("MaxHP", monster.MaxHP);
+                    if (card is Monster monster)
+                    {
+                        command.CommandText = "UPDATE Cards SET Name = @Name, DMG = @DMG, ElementType = @ElementType, MaxHP = @MaxHP, InDeck = @InDeck, UserID = @UserID WHERE ID = @ID";
+                        command.AddParameter("MaxHP", monster.MaxHP);
+                    }
+                    else if (card is Spell spell)
+                    {
+                        command.CommandText = "UPDATE Cards SET Name = @Name, DMG = @DMG, ElementType = @ElementType, MaxUses = @MaxUses, InDeck = @InDeck, UserID = @UserID WHERE ID = @ID";
+                        command.AddParameter("MaxUses", spell.MaxUses);
+                    }
+                    else
+                    {
+                        throw new Exception("CardRepo: Card Type does not exist.");
+                    }
+                    command.AddParameter("ID", card.ID);
+                    command.AddParameter("Name", card.Name);
+                    command.AddParameter("DMG", card.DMG);
+                    command.AddParameter("ElementType", (int)card.ElementType);
+                    command.AddParameter("InDeck", card.InDeck);
+                    command.AddParameter("UserID", card.UserID);
+                    command.ExecuteNonQuery();
                 }
-                else if (card is Spell spell)
-                {
-                    command.CommandText = "UPDATE Cards SET Name = @Name, DMG = @DMG, ElementType = @ElementType, MaxUses = @MaxUses, InDeck = @InDeck, UserID = @UserID WHERE ID = @ID";
-                    command.AddParameter("MaxUses", spell.MaxUses);
-                }
-                else
-                {
-                    throw new Exception("CardRepo: Card Type does not exist.");
-                }
-                command.AddParameter("ID", card.ID);
-                command.AddParameter("Name", card.Name);
-                command.AddParameter("DMG", card.DMG);
-                command.AddParameter("ElementType", (int)card.ElementType);
-                command.AddParameter("InDeck", card.InDeck);
-                command.AddParameter("UserID", card.UserID);
-                command.ExecuteNonQuery();
             }
         }
 
         public void Delete(int id)
         {
-            using (IDbCommand command = connection.CreateCommand())
+            lock (connection)
             {
-                command.CommandText = "DELETE FROM Cards WHERE ID = @ID";
-                command.AddParameter("ID", id);
-                command.ExecuteNonQuery();
+                using (IDbCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = "DELETE FROM Cards WHERE ID = @ID";
+                    command.AddParameter("ID", id);
+                    command.ExecuteNonQuery();
+                }
             }
         }
 
@@ -138,16 +156,19 @@ namespace MonsterTradingCardsGame
         {
             List<Card> cards = new List<Card>();
 
-            using (IDbCommand command = connection.CreateCommand())
+            lock (connection)
             {
-                command.CommandText = "SELECT * FROM Cards";
-
-                using (IDataReader reader = command.ExecuteReader())
+                using (IDbCommand command = connection.CreateCommand())
                 {
-                    Card card;
-                    while ((card = ReadCardFromReader(reader)) != null)
+                    command.CommandText = "SELECT * FROM Cards";
+
+                    using (IDataReader reader = command.ExecuteReader())
                     {
-                        cards.Add(card);
+                        Card card;
+                        while ((card = ReadCardFromReader(reader)) != null)
+                        {
+                            cards.Add(card);
+                        }
                     }
                 }
             }
@@ -159,17 +180,20 @@ namespace MonsterTradingCardsGame
         {
             List<Card> cards = new List<Card>();
 
-            using (IDbCommand command = connection.CreateCommand())
+            lock (connection)
             {
-                command.CommandText = "SELECT * FROM Cards WHERE UserID = @UserID";
-                command.AddParameter("UserID", userID);
-
-                using (IDataReader reader = command.ExecuteReader())
+                using (IDbCommand command = connection.CreateCommand())
                 {
-                    Card card;
-                    while ((card = ReadCardFromReader(reader)) != null)
+                    command.CommandText = "SELECT * FROM Cards WHERE UserID = @UserID";
+                    command.AddParameter("UserID", userID);
+
+                    using (IDataReader reader = command.ExecuteReader())
                     {
-                        cards.Add(card);
+                        Card card;
+                        while ((card = ReadCardFromReader(reader)) != null)
+                        {
+                            cards.Add(card);
+                        }
                     }
                 }
             }
@@ -181,17 +205,20 @@ namespace MonsterTradingCardsGame
         {
             List<Card> cards = new List<Card>();
 
-            using (IDbCommand command = connection.CreateCommand())
+            lock (connection)
             {
-                command.CommandText = "SELECT * FROM Cards WHERE UserID = @UserID AND InDeck = TRUE";
-                command.AddParameter("UserID", userID);
-
-                using (IDataReader reader = command.ExecuteReader())
+                using (IDbCommand command = connection.CreateCommand())
                 {
-                    Card card;
-                    while ((card = ReadCardFromReader(reader)) != null)
+                    command.CommandText = "SELECT * FROM Cards WHERE UserID = @UserID AND InDeck = TRUE";
+                    command.AddParameter("UserID", userID);
+
+                    using (IDataReader reader = command.ExecuteReader())
                     {
-                        cards.Add(card);
+                        Card card;
+                        while ((card = ReadCardFromReader(reader)) != null)
+                        {
+                            cards.Add(card);
+                        }
                     }
                 }
             }

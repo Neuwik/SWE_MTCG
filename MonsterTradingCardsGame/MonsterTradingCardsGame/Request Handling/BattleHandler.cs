@@ -27,66 +27,117 @@ namespace MonsterTradingCardsGame.Request_Handling
             }
         }
 
-        private ConcurrentBag<Battle> battles;
+        private List<Battle> battles;
 
         private BattleHandler() 
         {
-            battles = new ConcurrentBag<Battle>();
+            battles = new List<Battle>();
+            ThreadPool.QueueUserWorkItem(new WaitCallback(ManageLogQueue));
         }
 
-        public bool UserJoinQue(User user)
+        public bool UserJoinQueue(User user)
         {
-            if (UserIsInBattle(user) || UserIsInQue(user))
+            if (UserIsInBattle(user))
             {
                 return false;
             }
 
-            battles.OrderBy(b => b.QueStartTime);
-            Battle battle = battles.FirstOrDefault(b => b.MatchupIsAllowed(user));
-            if (battle != null)
+            lock (battles)
             {
-                Task.Run(() => battle.StartBattle(user));
-                return true;
-            }
+                battles.OrderBy(b => b.QueueStartTime);
+                Battle battle = battles.FirstOrDefault(b => b.MatchupIsAllowed(user));
+                if (battle != null)
+                {
+                    if (!battle.AddOponent(user))
+                    {
+                        return false;
+                    }
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(battle.StartBattle));
+                    return true;
+                }
 
-            battles.Add(new Battle(user));
+                battles.Add(new Battle(user));
+            }
             return true;
         }
 
-        public bool UserLeaveQue(User user)
+        public bool UserLeaveQueue(User user)
         {
-            Battle battle = battles.FirstOrDefault(b => b.UserInBattle(user.ID) && b.CurrentBatteState == BattleState.QUE);
-            if (battle != null)
+            lock (battles)
             {
-                battles = new ConcurrentBag<Battle>(battles.Where(b => !object.ReferenceEquals(b, battle)));
-                return true;
+                return battles.RemoveAll(b => b.UserInBattle(user.ID) && b.CurrentBatteState == BattleState.QUEUE) > 0;
             }
-            return false;
         }
 
         public List<string> ReadBattleLog(User user)
         {
             List<string> battleLog = new List<string>();
 
-            Battle battle = battles.FirstOrDefault(b => b.UserInBattle(user.ID));
-            if (battle != null)
+            lock (battles)
             {
-                battleLog = battle.ReadBattleLog(user.ID);
-            }
+                Battle battle = battles.FirstOrDefault(b => b.UserInBattle(user.ID));
+                if (battle != null)
+                {
+                    battleLog = battle.ReadBattleLog(user.ID);
+                }
 
-            battles = new ConcurrentBag<Battle>(battles.Where(b => b.CurrentBatteState != BattleState.DELETABLE));
+                battles.RemoveAll(b => b.CurrentBatteState == BattleState.DELETABLE);
+            }
 
             return battleLog;
         }
 
-        public bool UserIsInQue(User user)
+        public bool UserIsInQueue(User user)
         {
-            return battles.FirstOrDefault(b => b.UserInBattle(user.ID) && b.CurrentBatteState == BattleState.QUE) != null;
+            lock(battles)
+            {
+                return battles.FirstOrDefault(b => b.UserInBattle(user.ID) && b.CurrentBatteState == BattleState.QUEUE) != null;
+            }
+        }
+
+        public bool UserIsInRunningBattle(User user)
+        {
+            lock (battles)
+            {
+                return battles.FirstOrDefault(b => b.UserInBattle(user.ID) && b.CurrentBatteState == BattleState.RUNNING) != null;
+            }
         }
 
         public bool UserIsInBattle(User user)
         {
-            return battles.FirstOrDefault(b => b.UserInBattle(user.ID) && b.CurrentBatteState == BattleState.RUNNING) != null;
+            lock (battles)
+            {
+                return battles.FirstOrDefault(b => b.UserInBattle(user.ID)) != null;
+            }
+        }
+    
+        private void ManageLogQueue(object state)
+        {
+            while (true)
+            {
+                Thread.Sleep(Battle.MAXQUEUETIME * 2);
+                lock (battles)
+                {
+                    battles = battles.OrderBy(b => b.QueueStartTime).ToList();
+                    for (int i = battles.Count - 1; i >= 0; i--)
+                    {
+                        for (int j = battles.Count - 1; j >= 0; j--)
+                        {
+                            if (i != j)
+                            {
+                                if (battles[i].MatchupIsAllowed(battles[j].User1))
+                                {
+                                    if (battles[i].AddOponent(battles[j].User1))
+                                    {
+                                        ThreadPool.QueueUserWorkItem(new WaitCallback(battles[i].StartBattle));
+                                        battles.RemoveAt(j);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -6,3 +6,4 @@ Name -> Username
 14 -> username in path after change
 14 -> added calls for admin access
 14 -> added should fail calls for username exists
+19.1 -> added some extra battles for the score board

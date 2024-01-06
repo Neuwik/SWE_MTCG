@@ -8,18 +8,18 @@ using System.Threading.Tasks;
 
 namespace MonsterTradingCardsGame.Other
 {
-    public enum BattleState { QUE = 1, RUNNING = 2, ENDED = 3, DELETABLE = 5 }
+    public enum BattleState { QUEUE = 1, RUNNING = 2, ENDED = 3, DELETABLE = 5 }
     public class Battle
     {
-        private readonly int MAXQUETIME = 10000;
         private readonly int MAXELODIF = 100;
         private readonly int MAXROUNDS = 100;
+        public static readonly int MAXQUEUETIME = 10000;
         public static readonly int ELOCHANGE = 20;
 
         public User User1 { get; private set; }
         public User User2 { get; private set; }
 
-        public DateTime QueStartTime { get; private set; }
+        public DateTime QueueStartTime { get; private set; }
         public BattleState CurrentBatteState { get; private set; }
         private List<string> battleLog;
 
@@ -31,8 +31,8 @@ namespace MonsterTradingCardsGame.Other
         public Battle(User user1)
         {
             User1 = user1;
-            QueStartTime = DateTime.Now;
-            CurrentBatteState = BattleState.QUE;
+            QueueStartTime = DateTime.Now;
+            CurrentBatteState = BattleState.QUEUE;
             battleLog = new List<string>();
             deck1 = new List<Card>();
             deck2 = new List<Card>();
@@ -42,9 +42,19 @@ namespace MonsterTradingCardsGame.Other
 
         public bool MatchupIsAllowed(User user2)
         {
-            if (CurrentBatteState != BattleState.QUE)
+            if (user2 == null)
             {
                 return false;
+            }
+            if (CurrentBatteState != BattleState.QUEUE)
+            {
+                return false;
+            }
+
+            if (User1 == null)
+            {
+                User1 = User2;
+                User2 = null;
             }
 
             if (User2 != null)
@@ -57,7 +67,7 @@ namespace MonsterTradingCardsGame.Other
                 return false;
             }
 
-            if ((DateTime.Now - QueStartTime).TotalSeconds > MAXQUETIME)
+            if ((DateTime.Now - QueueStartTime).TotalSeconds > MAXQUEUETIME)
             {
                 return true;
             }
@@ -70,10 +80,33 @@ namespace MonsterTradingCardsGame.Other
             return true;
         }
 
-        public void StartBattle(User user2)
+        public bool AddOponent(User user2)
         {
+            if (CurrentBatteState != BattleState.QUEUE)
+            {
+                return false;
+            }
+            if (!MatchupIsAllowed(user2))
+            {
+                return false;
+            }
+
+            if (User2 == null)
+            {
+                User2 = user2;
+                return true;
+            }
+
+            return false;
+        }
+
+        public void StartBattle(object state)
+        {
+            if (CurrentBatteState != BattleState.QUEUE || User1 == null || User2 == null)
+            {
+                return;
+            }
             CurrentBatteState = BattleState.RUNNING;
-            User2 = user2;
 
             deck1 = ShuffleCards(User1.Deck.ToList());
             deck2 = ShuffleCards(User2.Deck.ToList());
