@@ -307,9 +307,15 @@ ping localhost -n 10 >NUL 2>NUL
 echo.
 curl -i -X GET http://localhost:10001/scoreboard --header "Authorization: Bearer kienboec-mtcgToken"
 echo.
+echo.
+
+echo could take longer because at 4/0 the Elo difference is to high, so the queuetime is longer:
+echo.
 start /b "kienboec battle" curl -i -X POST http://localhost:10001/battles --header "Authorization: Bearer kienboec-mtcgToken"
 start /b "altenhof battle" curl -i -X POST http://localhost:10001/battles --header "Authorization: Bearer altenhof-mtcgToken"
 ping localhost -n 10 >NUL 2>NUL
+echo.
+pause
 echo.
 curl -i -X GET http://localhost:10001/scoreboard --header "Authorization: Bearer kienboec-mtcgToken"
 echo.

@@ -67,7 +67,7 @@ namespace MonsterTradingCardsGame.Other
                 return false;
             }
 
-            if ((DateTime.Now - QueueStartTime).TotalSeconds > MAXQUEUETIME)
+            if ((DateTime.Now - QueueStartTime).TotalMilliseconds > MAXQUEUETIME)
             {
                 return true;
             }
