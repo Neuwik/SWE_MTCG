@@ -11,7 +11,7 @@ docker run --name SWE_MTCG -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=debian
 
 
 # Curl Script Changes: (edited.curl.withpause.bat)
-ID -> intager  
+ID -> integer  
 Name -> Username  
 2 -> should fail added when already logged in  
 2.1 -> Logout added  

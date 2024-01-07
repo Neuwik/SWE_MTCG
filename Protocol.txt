@@ -6,38 +6,71 @@ if22b022
 1.1 Design
 A server listens for new HTTP requests.
 The requests are beeing handled in new threads.
-If the requests do not contain any errors or wrong data, than the requests gets processed.
+If the requests do not contain any errors or wrong data, then the requests gets processed.
 Important data is stored in a PostresSQL database.
-When the request is finished or resulted in an error, than a response with according HTTP-Code and Message or Data is sent.
+When the request is finished or resulted in an error, then a response with according HTTP-Code and Message or Data is sent.
 
 1.2 Failures
 It was tried to implement a consistent connection with client for multible requests.
 This concept was quickly dicarded, because the test client is one single curl script.
-Also if one secure Socket connection would be mentained, than a Token based security would not be needed.
+Also if one secure Socket connection would be mentained, then a Token based security would not be needed.
 
 1.3 Connection listening
+The MTCG_Server class implements my main server loop.
+This class is implemented with the singleton pattern and uses System.Net.Sockets for HTTP connections.
+It creates a new Socket on port 10001 of my localhost.
+In a while true it accepts new clients, starts a new Client Handler and executes it in a new Thread.
+This class is also responsible for handling the token security, but the methods of the class are mainly called from the Client Handler threads.
+To ensure thread safty the dictionary is locked when needed.
+In the dictionary the token and a datetime for the automatic logout is stored.
 
 1.4 Client handler
+The Client Handler reads the request from the client.
+The request is split into its parts (path, get params, headers and data) with string operations.
+Then the request is processed according to its request type and path.
+If the path does not exist, errors occur or wrong data is provided, the server sends a response with a HTTP error code.
+When everything workts, the server responds with a message or data.
+When data from the database is needed or needs to be updated, then the according repository is used.
 
 1.5 DB structure
-The PostgresSQL database consists of 2 Tables. The Cards and the Users table.
+The PostgresSQL database consists of 2 Tables.
+The Cards and the Users table.
 Since each Card is owned by a User, the Cards table has a column called "ownerID" referencing the User.
 
 1.6 DB handling
-The code accesses the database via an IDbConnection. The connection is implemented in a singleton class, so the server always uses the same database connection.
-The database commands are executed via the UserRepo and the CardRepo. They both implement the repository and singleton pattern.
+The code accesses the database via an IDbConnection.
+The connection string looks like this "Server=localhost;Port=5432;Database=SWE_MTCG;User ID=postgres;Password=****".
+The connection is implemented in a singleton class, so the server always uses the same database connection.
+The database commands are executed via the UserRepo and the CardRepo.
+They both implement the repository and singleton pattern.
 
 1.7 Battle handling
+The Battle Handler class implements the singleton pattern.
+It is responsible for adding Users to a queue and matching them with suitable opponents.
+It starts a new battle in a new Thread when two Users in the queue are allowed to battle each other.
+The Battle Handler also starts a thread that has the single responsibility to match Users with to long queue times against each other.
 
 1.8 Threads
-
 Main thread, listens for new requests.
 Client handlers, a thread for each new requests
 Battle, a thread for each running battle.
 Queue manager, a thread that prevents to long queue times
-
-1.9 Thread Safty
 All member variables of singleton classes and static variables are bering locked when needed to ensure thread safty.
+
+1.9 Unique Feature
+My Users and Monsters have HP and my Spells have uses.
+The fight is over when one Users HP reaches 0 or when the maximal turn number of 100 is reached.
+When a Monster reaches 0 HP or when a Spell has no uses left, then it swaps to the opponents deck.
+
+1.10 Other Remarks
+For curl scipt changes view the README.md
+Some extra HTTP requests where implemented
+-) DELETE /sessions -> to logout a User
+-) DELETE /battles -> to leave the battle queue
+-) GET /battles -> to get the Battle Log
+Some HTTP requests where not implemented
+-) POST /packages -> not needed because my card packages are random generated
+-) GET, POST and DELETE /tradings -> trading was not implemented
 
 
 2. Unit Tests
