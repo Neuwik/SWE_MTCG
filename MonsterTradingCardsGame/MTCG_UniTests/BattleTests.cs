@@ -25,16 +25,16 @@ namespace MTCG_UnitTests
         [TestInitialize]
         public void Init()
         {
-            user1 = new User(1, "Max", "Muster", "MM");
-            user2 = new User(2, "Otto", "Normal", "ON");
-            user3 = new User(3, "Maxi", "Muster", "MM2", user1.Elo + Battle.MAXELODIF + 1);
-            user4 = new User(4, "Otti", "Normal", "ON2", user1.Elo + Battle.MAXELODIF - 1);
+            user1 = new User(-1, "Max", "Muster", "MM");
+            user2 = new User(-2, "Otto", "Normal", "ON");
+            user3 = new User(-3, "Maxi", "Muster", "MM2", user1.Elo + Battle.MAXELODIF + 1);
+            user4 = new User(-4, "Otti", "Normal", "ON2", user1.Elo + Battle.MAXELODIF - 1);
             user1.BuyPackage();
             user2.BuyPackage();
             user3.BuyPackage();
             user4.BuyPackage();
 
-            userNoCards1 = new User(5, "Manuel", "Huber", "MH");
+            userNoCards1 = new User(-5, "Manuel", "Huber", "MH");
         }
 
         [TestMethod]
