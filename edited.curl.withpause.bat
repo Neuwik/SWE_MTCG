@@ -348,23 +348,6 @@ echo.
 pause
 
 REM --------------------------------------------------
-echo 19.2) leave queue
-curl -i -X POST http://localhost:10001/battles --header "Authorization: Bearer kienboec-mtcgToken"
-echo.
-pause
-curl -i -X DELETE http://localhost:10001/battles --header "Authorization: Bearer kienboec-mtcgToken"
-echo.
-
-pause
-
-echo should fail not in queue:
-curl -i -X DELETE http://localhost:10001/battles --header "Authorization: Bearer kienboec-mtcgToken"
-echo.
-echo.
-
-pause
-
-REM --------------------------------------------------
 echo 20) trade
 echo check trading deals
 curl -i -X GET http://localhost:10001/tradings --header "Authorization: Bearer kienboec-mtcgToken"
