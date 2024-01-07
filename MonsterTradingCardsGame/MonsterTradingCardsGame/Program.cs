@@ -34,8 +34,10 @@ namespace MonsterTradingCardsGame
         {
             try
             {
-                CardRepo.Instance.DropCardsTable();
-                UserRepo.Instance.DropUsersTable();
+                UserRepo ur = UserRepo.Instance;
+                CardRepo cr = CardRepo.Instance;
+                cr.DropCardsTable();
+                ur.DropUsersTable();
             }
             catch (Exception e)
             {

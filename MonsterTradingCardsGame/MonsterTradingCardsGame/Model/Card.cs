@@ -53,12 +53,7 @@ namespace MonsterTradingCardsGame.Model
             UserID = userID;
         }
 
-        public virtual void PlayCard()
-        {
-            Console.WriteLine($"The Card {Name} (DMG: {DMG}, ElementType: {ElementType}) was played.");
-        }
-
-        public int Attack(IHealth target)
+        public virtual int Attack(IHealth target)
         {
             return target.LooseHP(DMG, ElementType);
         }

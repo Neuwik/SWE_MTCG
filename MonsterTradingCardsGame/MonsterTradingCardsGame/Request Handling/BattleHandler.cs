@@ -37,6 +37,11 @@ namespace MonsterTradingCardsGame.Request_Handling
 
         public bool UserJoinQueue(User user)
         {
+            if (!user.HasDeck())
+            {
+                return false;
+            }
+
             if (UserIsInBattle(user))
             {
                 return false;
@@ -65,7 +70,7 @@ namespace MonsterTradingCardsGame.Request_Handling
         {
             lock (battles)
             {
-                return battles.RemoveAll(b => b.UserInBattle(user.ID) && b.CurrentBatteState == BattleState.QUEUE) > 0;
+                return battles.RemoveAll(b => b.UserInBattle(user.ID) && b.CurrentBatteState == EBattleState.QUEUE) > 0;
             }
         }
 
@@ -81,7 +86,7 @@ namespace MonsterTradingCardsGame.Request_Handling
                     battleLog = battle.ReadBattleLog(user.ID);
                 }
 
-                battles.RemoveAll(b => b.CurrentBatteState == BattleState.DELETABLE);
+                battles.RemoveAll(b => b.CurrentBatteState == EBattleState.DELETABLE);
             }
 
             return battleLog;
@@ -91,7 +96,7 @@ namespace MonsterTradingCardsGame.Request_Handling
         {
             lock(battles)
             {
-                return battles.FirstOrDefault(b => b.UserInBattle(user.ID) && b.CurrentBatteState == BattleState.QUEUE) != null;
+                return battles.FirstOrDefault(b => b.UserInBattle(user.ID) && b.CurrentBatteState == EBattleState.QUEUE) != null;
             }
         }
 
@@ -99,7 +104,7 @@ namespace MonsterTradingCardsGame.Request_Handling
         {
             lock (battles)
             {
-                return battles.FirstOrDefault(b => b.UserInBattle(user.ID) && b.CurrentBatteState == BattleState.RUNNING) != null;
+                return battles.FirstOrDefault(b => b.UserInBattle(user.ID) && b.CurrentBatteState == EBattleState.RUNNING) != null;
             }
         }
 

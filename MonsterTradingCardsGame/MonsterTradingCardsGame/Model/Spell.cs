@@ -29,10 +29,14 @@ namespace MonsterTradingCardsGame.Model
             Uses = MaxUses;
         }
 
-        public override void PlayCard()
+        public override int Attack(IHealth target)
         {
+            if (Uses <= 0)
+            {
+                return 0;
+            }
             Uses--;
-            Console.WriteLine($"The Spell {Name} (DMG: {DMG}, ElementType: {ElementType}) was played. ({Uses}/{MaxUses} Uses left)");
+            return base.Attack(target);
         }
 
         public override string ToString()

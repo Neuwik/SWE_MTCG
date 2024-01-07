@@ -36,7 +36,7 @@ namespace MonsterTradingCardsGame
             requestHistory = new List<string>();
         }
 
-        public void Start(object state)
+        public void Start(object state = null)
         {
             HandleRequest();
         }

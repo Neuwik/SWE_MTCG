@@ -2,12 +2,14 @@
 using MonsterTradingCardsGame.Request_Handling;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MonsterTradingCardsGame.Model
 {
@@ -54,6 +56,24 @@ namespace MonsterTradingCardsGame.Model
             Password = password;
             Cards = new List<Card>();
             Deck = new Card[DECK_SIZE];
+        }
+
+        //For Unit Test only
+        public User(int id, string username, string password, string token)
+        {
+            ID = id;
+            Username = username;
+            Password = password;
+            Token = token;
+            HP = MaxHP;
+            Deck = new Card[DECK_SIZE];
+            Cards = new List<Card>();
+        }
+
+        //For Unit Test only
+        public User(int id, string username, string password, string token, int elo) : this(id, username, password, token)
+        {
+            Elo = elo;
         }
 
         public User(int id, string username, string password, string token, bool isAdmin, string bio, string image, int coins, int elo, int wins, int draws, int losses, int maxHP) : this(username, password)
@@ -276,6 +296,11 @@ namespace MonsterTradingCardsGame.Model
             return newCards;
         }
 
+        public bool HasDeck()
+        {
+            return Deck.Count(c => c != null) == DECK_SIZE;
+        }
+
         public int LooseHP(int dmg, EElementType elementType)
         {
             int realDMG = (dmg > HP) ? HP : dmg;
@@ -306,6 +331,10 @@ namespace MonsterTradingCardsGame.Model
             {
                 fEnemyElo = 1;
             }
+            if (fElo < 1)
+            {
+                fEnemyElo = 1;
+            }
             float eloDifPercent = fEnemyElo / fElo;
             float eloChange = Battle.ELOCHANGE * eloDifPercent;
             Elo += ((int)(eloChange));
@@ -321,6 +350,10 @@ namespace MonsterTradingCardsGame.Model
             {
                 fEnemyElo = 1;
             }
+            if (fElo < 1)
+            {
+                fEnemyElo = 1;
+            }
             float eloDifPercent = fElo / fEnemyElo;
             float eloChange = Battle.ELOCHANGE * eloDifPercent;
             Elo -= ((int)(eloChange));
@@ -330,9 +363,48 @@ namespace MonsterTradingCardsGame.Model
             }
         }
         
-        public void AddDraw()
+        public void AddDraw(int enemyElo)
         {
             Draws++;
+
+            if (Elo == enemyElo)
+            {
+                return;
+            }
+
+            float fElo = Convert.ToSingle(Elo);
+            float fEnemyElo = Convert.ToSingle(enemyElo);
+            if (fEnemyElo < 1)
+            {
+                fEnemyElo = 1;
+            }
+            if (fElo < 1)
+            {
+                fEnemyElo = 1;
+            }
+
+            if (Elo < enemyElo)
+            {
+                float eloDifPercent = fEnemyElo / fElo;
+                float eloChange = Battle.ELOCHANGE * (eloDifPercent - 1);
+                Elo += ((int)(eloChange));
+            }
+            else if (Elo > enemyElo)
+            {
+                float eloDifPercent = fElo / fEnemyElo;
+                float eloChange = Battle.ELOCHANGE * (eloDifPercent - 1);
+                Elo -= ((int)(eloChange));
+                if (Elo < 0)
+                {
+                    Elo = 0;
+                }
+            }
+        }
+    
+        //Only used for Unit Tests
+        public void ResetHP()
+        {
+            HP = MaxHP;
         }
     }
 }

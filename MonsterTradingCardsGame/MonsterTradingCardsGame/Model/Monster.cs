@@ -28,11 +28,6 @@ namespace MonsterTradingCardsGame.Model
             HP = MaxHP;
         }
 
-        public override void PlayCard()
-        {
-            Console.WriteLine($"The Monster {Name} (HP: {HP}, DMG: {DMG}, ElementType: {ElementType}) was played.");
-        }
-
         public int LooseHP(int dmg, EElementType elementType)
         {
             int elementDifference = ElementType - elementType;
