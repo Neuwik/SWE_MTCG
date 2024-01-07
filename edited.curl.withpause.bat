@@ -350,7 +350,6 @@ pause
 REM --------------------------------------------------
 echo 19.2) leave queue
 curl -i -X POST http://localhost:10001/battles --header "Authorization: Bearer kienboec-mtcgToken"
-ping localhost -n 10 >NUL 2>NUL
 curl -i -X DELETE http://localhost:10001/battles --header "Authorization: Bearer kienboec-mtcgToken"
 echo.
 
