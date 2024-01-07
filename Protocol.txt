@@ -1,4 +1,6 @@
-Hello World
+SWE_MTCG (C#)
+Dominik Neuwirth
+if22b022
 
 1. Technical Steps:
 1.1 Design
@@ -18,10 +20,24 @@ Also if one secure Socket connection would be mentained, than a Token based secu
 1.4 Client handler
 
 1.5 DB structure
+The PostgresSQL database consists of 2 Tables. The Cards and the Users table.
+Since each Card is owned by a User, the Cards table has a column called "ownerID" referencing the User.
 
 1.6 DB handling
+The code accesses the database via an IDbConnection. The connection is implemented in a singleton class, so the server always uses the same database connection.
+The database commands are executed via the UserRepo and the CardRepo. They both implement the repository and singleton pattern.
 
 1.7 Battle handling
+
+1.8 Threads
+
+Main thread, listens for new requests.
+Client handlers, a thread for each new requests
+Battle, a thread for each running battle.
+Queue manager, a thread that prevents to long queue times
+
+1.9 Thread Safty
+All member variables of singleton classes and static variables are bering locked when needed to ensure thread safty.
 
 
 2. Unit Tests
@@ -42,6 +58,7 @@ It is also tested what happens if
 -) a User with no Cards wants to enter a Battle.
 -) a User with to high or low Elo tries to join his own Battle as oponent.
 -) a User tries to read the Battle Log of a Battle he is not part of.
+
 
 3. Time Spent
 Earlier: 6h

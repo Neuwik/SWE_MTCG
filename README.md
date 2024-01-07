@@ -1,4 +1,7 @@
-# SWE_MTCG
+# SWE_MTCG (C#)
+Dominik Neuwirth
+if22b022
+
 # Git Repository Link
 https://github.com/Neuwik/SWE_MTCG.git
 
